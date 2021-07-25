@@ -1,8 +1,13 @@
 use crate::terminal::{Terminal, Position};
+use std::collections;
 use termion::event::Key;
+use termion::terminal_size;
+use termion::color;
+use crate::entry::Entry;
 
 pub struct Tippy{
     terminal: Terminal,
+    anilist: Vec<Entry>,
     quit: bool,
 }
 
@@ -10,6 +15,7 @@ impl Tippy{
     pub fn default() -> Self {
         Self {
             terminal: Terminal::default().expect("Terminal Initialisation Failed"),
+            anilist: Vec::new(),
             quit: false,
         }
     }
@@ -52,10 +58,11 @@ impl Tippy{
         let height = self.terminal.size().height;
         let width = self.terminal.size().width as usize;
         Terminal::clear_screen();
-        println!("{}\r", self.format_title(width));
-        println!("{}\r", "═".repeat(width));
+        println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(width), color::Bg(color::Reset));
         for terminal_row in 0..height - 1 {
+            if self.anilist.len() < 0 {
 
+            }
         }
     }
     fn format_title(&self, width: usize) -> String{
@@ -68,9 +75,14 @@ impl Tippy{
         let namecol_padding = " ".repeat(width / 2 - label_name.len());
         let scorecol_padding = " ".repeat(width / 6 - label_score.len());
         let progresscol_padding = " ".repeat(width / 6 - label_progress.len());
-        format!("{}{}{}{}{}{}{}",
+
+        let string = format!("{}{}{}{}{}{}{}",
                 label_name, namecol_padding, label_score, scorecol_padding,
-                label_progress, progresscol_padding, label_type)
+                label_progress, progresscol_padding, label_type);
+
+        let typecol_padding = " ".repeat(width - string.len());
+
+        format!("{}{}", string, typecol_padding)
     }
 }
 
