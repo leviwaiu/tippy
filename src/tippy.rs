@@ -1,9 +1,13 @@
 use crate::terminal::{Terminal, Position};
-use std::collections;
 use termion::event::Key;
-use termion::terminal_size;
 use termion::color;
+use webbrowser;
+use futures::executor::block_on;
+
 use crate::entry::Entry;
+use crate::secrets::CLIENT_SECRET;
+use reqwest::Response;
+use crate::interface::Interface;
 
 pub struct Tippy{
     terminal: Terminal,
@@ -20,6 +24,7 @@ impl Tippy{
         }
     }
     pub fn run(&mut self) {
+
         loop {
             if let Err(error) = self.process_screen_tick() {
                 die(&error);
@@ -43,7 +48,6 @@ impl Tippy{
         else {
             self.draw_interface()
         }
-        Terminal::cursor_show();
         Terminal::flush()
     }
     fn process_keypresses(&mut self) -> Result<(), std::io::Error> {
@@ -54,35 +58,42 @@ impl Tippy{
         }
         Ok(())
     }
+    fn get_authcode(){
+
+    }
+
     fn draw_interface(&self){
         let height = self.terminal.size().height;
-        let width = self.terminal.size().width as usize;
-        Terminal::clear_screen();
-        println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(width), color::Bg(color::Reset));
-        for terminal_row in 0..height - 1 {
-            if self.anilist.len() < 0 {
 
+        Terminal::clear_screen();
+        println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(), color::Bg(color::Reset));
+        for terminal_row in 0..height - 2 {
+            if self.anilist.len() == 0 {
+                println!("{}\r", self.format_entry(Entry::default()));
             }
         }
     }
-    fn format_title(&self, width: usize) -> String{
+    fn format_title(&self) -> String {
         //Langauge support planning for the far future?
-        let label_name = "Name";
-        let label_score = "Score";
-        let label_progress = "Progress";
-        let label_type = "Type";
+        let labels = ["Name","Score","Progress","Type"];
+        self.format_row(labels)
+    }
+    fn format_entry(&self, entry: Entry) -> String {
+        let labels: [&str;4] = [&entry.title, &entry.watched_count.to_string(),
+                                &entry.total_count.to_string(), &entry.entry_type];
+        self.format_row(labels)
+    }
+    fn format_row(&self, labels:[&str;4]) -> String{
+        let width = self.terminal.size().width as usize;
 
-        let namecol_padding = " ".repeat(width / 2 - label_name.len());
-        let scorecol_padding = " ".repeat(width / 6 - label_score.len());
-        let progresscol_padding = " ".repeat(width / 6 - label_progress.len());
+        let padding_one = " ".repeat(width / 2 - labels[0].len());
+        let padding_two = " ".repeat(width / 8 - labels[1].len());
+        let padding_three = " ".repeat(width / 8 - labels[2].len());
 
-        let string = format!("{}{}{}{}{}{}{}",
-                label_name, namecol_padding, label_score, scorecol_padding,
-                label_progress, progresscol_padding, label_type);
-
-        let typecol_padding = " ".repeat(width - string.len());
-
-        format!("{}{}", string, typecol_padding)
+        let string = format!("{}{}{}{}{}{}{}", labels[0], padding_one, labels[1], padding_two,
+                             labels[2], padding_three, labels[3]);
+        let padding_four = " ".repeat(width - string.len());
+        format!("{}{}", string, padding_four)
     }
 }
 
