@@ -8,11 +8,13 @@ use crate::entry::Entry;
 use crate::secrets::CLIENT_SECRET;
 use reqwest::Response;
 use crate::interface::Interface;
+use futures::executor;
 
 pub struct Tippy{
     terminal: Terminal,
     anilist: Vec<Entry>,
     quit: bool,
+    code: String,
 }
 
 impl Tippy{
@@ -21,9 +23,12 @@ impl Tippy{
             terminal: Terminal::default().expect("Terminal Initialisation Failed"),
             anilist: Vec::new(),
             quit: false,
+            code: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImQyZmY5MDQ3ZWFkMTI1ZTJlNzJiOWQxMmRkYzBjNTQ2NmY3MTY1MDIxZDQwYzI4MzY3YjUxZTFjNzM0NzJlZWRhOGU5ZTM1NTlkY2IyN2FiIn0.eyJhdWQiOiI2MDc1IiwianRpIjoiZDJmZjkwNDdlYWQxMjVlMmU3MmI5ZDEyZGRjMGM1NDY2ZjcxNjUwMjFkNDBjMjgzNjdiNTFlMWM3MzQ3MmVlZGE4ZTllMzU1OWRjYjI3YWIiLCJpYXQiOjE2Mjk1NTU5MzksIm5iZiI6MTYyOTU1NTkzOSwiZXhwIjoxNjYxMDkxOTM5LCJzdWIiOiI1NDM5NzMwIiwic2NvcGVzIjpbXX0.pRGNTxqc7GcZwqbiXgJjrWbvkUAbNEY56h_vJlwHhiyJTX3bgBX328-frpnpsw0588gLn-V39s3-hAMXg3JHAeyBNsLUuqVP3fdnZykf1DwEoYyARF_QXity-gN8DHBnRbCkfxdyxHBI9awZSplEjPdbMYDaqqEr_0laAXPJU5p3xs-slJ1nV3V87zJL3OtQLBIe2ZFJNp3RM09GIGVnGlG9iAsnhflAH5qB_9W1kmeMjSJs0SyBEroTe2t9XaaJ4dce7revF_CCHeF9HcAH_LjGlkNmYgGwYCG61pXs00qaE7itUgPwORGqk_UbvYLUM5y9pOV48hg76_UT-z4z-MBI_aKqbu9TQfbKLzYPdk_C4gGTweODWhjNHN_Z1XwFE5euvBHHIGKa42i-5nOJs-XEu9au1OEqwu0tdDLj2MnmF3-s53LVlyU4Z_JuihcsCmVwK4UyQ2sltvHwFF1h2GJCrIA2wRHeTER1oZXpzQ-glS0Bf8WbpoJlnrKZCTYUy97qHJ1T_-uQz2Wg2LJBVT3qog2mB3e08z8_s8tNQJEdzU0pdtGzAsBRNkDrWjjOHQXxZX1yC3-rKZTlajWlPd-Q6-QzXh1GHL6hY1_f8JfHFuH4G2VT_lmvwWmlPXOL_sL8jnbI7ysxHTQqcUU-Fnk0piMFowHVgFZdlXxxpZ8".parse().unwrap(),
         }
     }
     pub fn run(&mut self) {
+
+        self.authentication();
 
         loop {
             if let Err(error) = self.process_screen_tick() {
@@ -58,8 +63,21 @@ impl Tippy{
         }
         Ok(())
     }
-    fn get_authcode(){
+    fn authentication(&mut self){
+        match Interface::fetch_code(){
+            Ok(code) => self.code = code,
+            Err(error) => panic!("There is a problem!"),
+        }
+        let _authcode_clone = &self.code.clone();
+        let authcode_return = Interface::fetch_authcode(_authcode_clone);
 
+        let result = match authcode_return {
+            Ok(res) => res,
+            Err(error) => panic!("There is a problem! {:?}", error),
+        };
+        if result == ""{
+            let test = "test";
+        }
     }
 
     fn draw_interface(&self){
