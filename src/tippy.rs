@@ -14,7 +14,7 @@ pub struct Tippy{
     terminal: Terminal,
     anilist: Vec<Entry>,
     quit: bool,
-    auth_codes: Option<AuthReply>
+    interface: Interface,
 }
 
 impl Tippy{
@@ -23,6 +23,7 @@ impl Tippy{
             terminal: Terminal::default().expect("Terminal Initialisation Failed"),
             anilist: Vec::new(),
             quit: false,
+            interface: Interface::default(),
         }
     }
     pub fn run(&mut self) {
@@ -58,6 +59,7 @@ impl Tippy{
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Char('q') => self.quit = true,
+            Key::Char('d') => (),
             _ => (),
         }
         Ok(())
@@ -65,18 +67,16 @@ impl Tippy{
     fn authentication(&mut self){
         let mut code:String;
         match Interface::fetch_code(){
-            Ok(co) =>  code = co,
+            Ok(c) =>  code = c,
             Err(error) => panic!("There is a problem!"),
         }
         let _authcode_clone = code.clone();
-        let authcode_return = Interface::fetch_authcode(&_authcode_clone);
-
-        let result = match authcode_return {
+        let auth_reply = Interface::fetch_authcode(&_authcode_clone);
+        let result = match auth_reply {
             Ok(res) => res,
-            Err(error) => panic!("There is a problem! {:?}", error),
+            Err(e) => panic!("Error while fetching authcode"),
         };
-
-        println!("{:?}",result);
+        self.interface.set_access_token(result.access_token);
     }
 
     fn draw_interface(&self){
