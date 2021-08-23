@@ -4,9 +4,20 @@ use std::net::{TcpListener, TcpStream};
 use std::collections::HashMap;
 use std::{thread, fs};
 use std::io::{Read, Write, ErrorKind};
+use serde::Deserialize;
 
 pub struct Interface{
 }
+
+#[derive(Deserialize)]
+#[derive(Debug)]
+pub struct AuthReply{
+    token_type:String,
+    expires_in:usize,
+    access_token:String,
+    refresh_token:String,
+}
+
 
 impl Interface{
 
@@ -62,17 +73,17 @@ impl Interface{
     }
 
     #[tokio::main]
-    pub async fn fetch_authcode(code:&str) -> Result<String, reqwest::Error> {
+    pub async fn fetch_authcode(code:&str) -> Result<AuthReply, reqwest::Error> {
         let client = reqwest::Client::new();
         let mut params = HashMap::new();
         params.insert("grant_type", "authorization_code");
         params.insert("client_id", "6075");
         params.insert("client_secret", CLIENT_SECRET);
-        params.insert("redirect_uri", "https://localhost:25252");
+        params.insert("redirect_uri", "http://localhost:25252");
         params.insert("code", code);
 
         let resp = client.post("https://anilist.co/api/v2/oauth/token")
-            .json(&params).send().await?.text().await?;
+            .json(&params).send().await?.json::<AuthReply>().await?;
         Ok(resp)
     }
 
