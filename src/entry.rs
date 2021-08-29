@@ -4,6 +4,7 @@ pub struct Entry{
     pub watched_count: usize,
     pub total_count: usize,
     pub entry_type: String,
+    pub score: u8,
 }
 
 impl Entry{
@@ -14,16 +15,17 @@ impl Entry{
             watched_count:10,
             total_count:10,
             entry_type: "Test".to_string(),
+            score:0,
         }
     }
 
-    fn set_watched(mut self, count: usize){
+    fn set_watched(&mut self, count: usize){
         if count <= self.total_count{
             self.watched_count = count;
         }
     }
 
-    fn add_watched(mut self){
+    fn add_watched(&mut self){
         if self.watched_count < self.total_count{
             self.watched_count +=1 ;
         }

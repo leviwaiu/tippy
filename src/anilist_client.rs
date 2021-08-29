@@ -1,16 +1,16 @@
-use reqwest::Response;
 use crate::secrets::CLIENT_SECRET;
 use std::net::{TcpListener, TcpStream};
 use std::collections::HashMap;
-use std::{thread, fs};
+use std::fs;
 use std::io::{Read, Write, ErrorKind};
 use serde::Deserialize;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, ACCEPT};
 
-pub struct Interface{
-    access_token: Option<String>,
-    refresh_token: Option<String>,
+pub struct AniListClient {
+    is_auth: bool,
+    access_token: Option<String>
 }
+
 
 #[derive(Deserialize, Debug)]
 pub struct AuthReply{
@@ -19,35 +19,33 @@ pub struct AuthReply{
     pub refresh_token:String,
 }
 
-impl Interface{
+impl AniListClient {
 
     pub fn default() -> Self{
-        Self{
+        Self {
+            is_auth: false,
             access_token: None,
-            refresh_token: None,
         }
     }
 
-    pub fn set_access_token(&mut self, token:String){
-        self.access_token = Some(token);
+    pub fn is_auth(&self) -> bool{
+        self.is_auth
     }
 
-    pub fn get_access_token(&self) -> String{
-        let token = &self.access_token;
-        return match token {
-            Some(str) => str.to_string(),
-            None => String::from("Does not Exist"),
-        }
+    pub fn set_auth(&mut self, access_code: Option<String>){
+        self.access_token = access_code;
+        self.is_auth = true;
     }
 
-    pub fn fetch_code() -> Result<String, std::io::Error>{
+
+    pub(crate) fn fetch_code() -> Result<String, std::io::Error>{
         let listener = TcpListener::bind("127.0.0.1:25252").unwrap();
 
         let url =
             "https://anilist.co/api/v2/oauth/authorize?client_id=6075&redirect_uri=http://localhost:25252&response_type=code";
         if webbrowser::open(url).is_ok() {
             for stream in listener.incoming() {
-                let code = Interface::handle_conn(stream?);
+                let code = AniListClient::handle_conn(stream?);
                 return Ok(code);
             }
         }
@@ -91,8 +89,8 @@ impl Interface{
     }
 
     #[tokio::main]
-    pub async fn fetch_authcode(code:&str) -> Result<AuthReply, reqwest::Error> {
-        let mut client = reqwest::Client::new();
+    pub(crate) async fn fetch_authcode(code:&str) -> Result<AuthReply, reqwest::Error> {
+        let client = reqwest::Client::new();
         let mut params = HashMap::new();
         params.insert("grant_type", "authorization_code");
         params.insert("client_id", "6075");
@@ -105,30 +103,26 @@ impl Interface{
         Ok(resp)
     }
 
-    pub async fn fetch_auth_content(access_token:String, query:serde_json::Value)
+    #[tokio::main]
+    pub async fn fetch_auth_content(&mut self, query:serde_json::Value)
         -> Result<String, reqwest::Error> {
-        let mut client = reqwest::Client::new();
+        let client = reqwest::Client::new();
         let resp = client.post("https://graphql.anilist.co/")
-            .header(AUTHORIZATION, format!("{} {}","Bearer", access_token))
+            .header(AUTHORIZATION, format!("{} {}","Bearer", self.access_token.as_ref().unwrap()))
             .header(CONTENT_TYPE, "application/json")
             .header(ACCEPT, "application/json")
             .body(query.to_string()).send().await?.text().await?;
         Ok(resp)
     }
 
-    pub async fn fetch_normal_content(query:serde_json::Value)
+    #[tokio::main]
+    pub async fn fetch_content(query:serde_json::Value)
         -> Result<String, reqwest::Error> {
-        let mut client = reqwest::Client::new();
+        let client = reqwest::Client::new();
         let resp = client.post("https://graphql.anilist.co/")
             .header(CONTENT_TYPE, "application/json")
             .header(ACCEPT, "application/json")
             .body(query.to_string()).send().await?.text().await?;
         Ok(resp)
     }
-    // pub async fn fetch_anilist() -> Result<Response, reqwest::Error> {
-    //     let client = reqwest::Client::new();
-    //     let params = [
-    //
-    //     ];
-    // }
 }

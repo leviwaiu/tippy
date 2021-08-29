@@ -1,34 +1,34 @@
 use crate::terminal::{Terminal, Position};
 use termion::event::Key;
 use termion::color;
-use webbrowser;
-use futures::executor::block_on;
+use tokio::task;
 
 use crate::entry::Entry;
 use crate::secrets::CLIENT_SECRET;
-use reqwest::Response;
-use crate::interface::{Interface, AuthReply};
-use futures::executor;
+use futures::{executor};
+use crate::anilist_interface::AniListInterface;
 
 pub struct Tippy{
     terminal: Terminal,
-    anilist: Vec<Entry>,
+    anime_list: Vec<Entry>,
     quit: bool,
-    interface: Interface,
+    interface: AniListInterface,
+    user_id: u64,
 }
 
 impl Tippy{
     pub fn default() -> Self {
         Self {
             terminal: Terminal::default().expect("Terminal Initialisation Failed"),
-            anilist: Vec::new(),
+            anime_list: Vec::new(),
             quit: false,
-            interface: Interface::default(),
+            interface: AniListInterface::default(),
+            user_id: 0
         }
     }
     pub fn run(&mut self) {
 
-        self.authentication();
+        self.interface.authentication();
 
         loop {
             if let Err(error) = self.process_screen_tick() {
@@ -64,20 +64,6 @@ impl Tippy{
         }
         Ok(())
     }
-    fn authentication(&mut self){
-        let mut code:String;
-        match Interface::fetch_code(){
-            Ok(c) =>  code = c,
-            Err(error) => panic!("There is a problem!"),
-        }
-        let _authcode_clone = code.clone();
-        let auth_reply = Interface::fetch_authcode(&_authcode_clone);
-        let result = match auth_reply {
-            Ok(res) => res,
-            Err(e) => panic!("Error while fetching authcode"),
-        };
-        self.interface.set_access_token(result.access_token);
-    }
 
     fn draw_interface(&self){
         let height = self.terminal.size().height;
@@ -85,7 +71,7 @@ impl Tippy{
         Terminal::clear_screen();
         println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(), color::Bg(color::Reset));
         for terminal_row in 0..height - 2 {
-            if self.anilist.len() == 0 {
+            if self.anime_list.len() == 0 {
                 println!("{}\r", self.format_entry(Entry::default()));
             }
         }
@@ -112,6 +98,7 @@ impl Tippy{
         let padding_four = " ".repeat(width - string.len());
         format!("{}{}", string, padding_four)
     }
+
 }
 
 fn die(e: &std::io::Error){

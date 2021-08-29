@@ -2,7 +2,6 @@ use std::io::{self, stdout, Write};
 use termion::raw::{RawTerminal, IntoRawMode};
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::color;
 
 #[derive(Default)]
 pub struct Size{
