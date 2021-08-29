@@ -1,11 +1,8 @@
 use crate::terminal::{Terminal, Position};
 use termion::event::Key;
 use termion::color;
-use tokio::task;
 
 use crate::entry::Entry;
-use crate::secrets::CLIENT_SECRET;
-use futures::{executor};
 use crate::anilist_interface::AniListInterface;
 
 pub struct Tippy{
@@ -13,7 +10,6 @@ pub struct Tippy{
     anime_list: Vec<Entry>,
     quit: bool,
     interface: AniListInterface,
-    user_id: u64,
 }
 
 impl Tippy{
@@ -23,12 +19,12 @@ impl Tippy{
             anime_list: Vec::new(),
             quit: false,
             interface: AniListInterface::default(),
-            user_id: 0
         }
     }
     pub fn run(&mut self) {
 
-        self.interface.authentication();
+        self.setup();
+
 
         loop {
             if let Err(error) = self.process_screen_tick() {
@@ -98,6 +94,12 @@ impl Tippy{
         let padding_four = " ".repeat(width - string.len());
         format!("{}{}", string, padding_four)
     }
+    fn setup(&mut self){
+        self.interface.authentication();
+        self.interface.fetch_viewer();
+        self.interface.fetch_anime_list();
+    }
+
 
 }
 

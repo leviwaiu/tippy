@@ -67,7 +67,7 @@ impl AniListClient {
             match req.path {
                 Some(ref path) => {
                     if path.contains("code"){
-                        let mut path_split = path.split("code=");
+                        let path_split = path.split("code=");
                         match path_split.skip(1).next(){
                             Some(res) => { code = res }
                             None => {}
