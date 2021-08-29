@@ -63,12 +63,12 @@ impl Tippy{
 
     fn draw_interface(&self){
         let height = self.terminal.size().height;
-
         Terminal::clear_screen();
         println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(), color::Bg(color::Reset));
-        for terminal_row in 0..height - 2 {
-            if self.anime_list.len() == 0 {
-                println!("{}\r", self.format_entry(Entry::default()));
+        for terminal_row  in 0..height - 2 {
+            if self.anime_list.len() > 0 {
+                let entry = self.anime_list[terminal_row as usize].clone();
+                println!("{}\r", self.format_entry(entry));
             }
         }
     }
@@ -78,8 +78,11 @@ impl Tippy{
         self.format_row(labels)
     }
     fn format_entry(&self, entry: Entry) -> String {
-        let labels: [&str;4] = [&entry.title, &entry.watched_count.to_string(),
-                                &entry.total_count.to_string(), &entry.entry_type];
+        let episode_count = format!("{}/{}",
+                                    &entry.watched_count.to_string(),
+                                    &entry.total_count.to_string());
+        let labels: [&str;4] = [&entry.title, &entry.score.to_string(),
+                                &episode_count, &entry.entry_type];
         self.format_row(labels)
     }
     fn format_row(&self, labels:[&str;4]) -> String{
@@ -97,7 +100,10 @@ impl Tippy{
     fn setup(&mut self){
         self.interface.authentication();
         self.interface.fetch_viewer();
-        self.interface.fetch_anime_list();
+        self.anime_list = self.interface.fetch_anime_list();
+
+        //REMOVE WHEN NEEDED
+        //self.terminal.debug_size_override();
     }
 
 

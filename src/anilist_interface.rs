@@ -1,4 +1,5 @@
 use crate::anilist_client::AniListClient;
+use crate::entry::Entry;
 
 pub struct AniListInterface {
     client: AniListClient,
@@ -50,7 +51,7 @@ impl AniListInterface {
         Ok(user_id)
     }
 
-    pub fn fetch_anime_list_page(&mut self, page:u8) -> serde_json::Result<serde_json::Value> {
+    fn fetch_anime_list_page(&mut self, page:u8) -> serde_json::Result<serde_json::Value> {
         let query = "
         query($userId: Int, $page: Int, $perPage: Int){
             Page(page:$page, perPage: $perPage){
@@ -63,7 +64,14 @@ impl AniListInterface {
                 }
                 mediaList(userId:$userId, type:ANIME){
                     id
-                    mediaId
+                    media {
+                        title {
+                            romaji
+                            native
+                        }
+                        episodes
+                        type
+                    }
                     score
                     progress
                 }
@@ -84,36 +92,26 @@ impl AniListInterface {
         Ok(res)
     }
 
-    fn fetch_anime(&mut self, id: u64) -> serde_json::Result<serde_json::Value>{
-        let query = "
-        query($id: Int){
-            Media(id:$id){
-                title {
-                    romaji
-                    native
-                }
-            }
-        }";
-        let serde_query = serde_json::json!({"query":query, "variables": {
-            "id":id
-        }});
-        let fut_resp =
-            self.client.fetch_auth_content(serde_query);
-        let result = match fut_resp {
-            Ok(res) => res,
-            Err(_) => panic!("Error while fetching authcode")
-        };
-        let res: serde_json::Value = serde_json::from_str(&result)?;
-        Ok(res)
-    }
 
-    pub fn fetch_anime_list(&mut self){
+    pub fn fetch_anime_list(&mut self) -> Vec<Entry>{
+        let mut anime_list = Vec::new();
         let firstpage = self.fetch_anime_list_page(1).unwrap();
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
         for item in list {
-            let title_req = self.fetch_anime(item["mediaId"].as_u64().unwrap()).unwrap();
-            println!("{}",title_req);
+            let count = match item["media"]["episodes"].as_u64(){
+                Some(n) => n,
+                None => 9999
+            };
+            let new_entry = Entry::new(
+                item["id"].as_u64().unwrap(),
+                String::from(item["media"]["title"]["romaji"].as_str().unwrap()),
+                item["progress"].as_u64().unwrap(),
+                count,
+                item["media"]["type"].to_string(),
+                item["score"].as_u64().unwrap(),
+            );
+            anime_list.push(new_entry);
         }
-        println!("{}", firstpage);
+        anime_list
     }
 }

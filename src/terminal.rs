@@ -32,6 +32,12 @@ impl Terminal {
         })
     }
     pub fn size(&self) -> &Size { &self.size }
+
+    pub fn debug_size_override(&mut self){
+        self.size.height = 40;
+        self.size.width = 120;
+    }
+
     pub fn clear_screen() { print!("{}", termion::clear::All);}
 
     pub fn flush() -> Result<(), std::io::Error>{ io::stdout().flush() }

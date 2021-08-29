@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Entry{
     pub id: usize,
     pub title: String,
@@ -16,6 +17,17 @@ impl Entry{
             total_count:10,
             entry_type: "Test".to_string(),
             score:0,
+        }
+    }
+
+    pub fn new(id:u64, title: String, watched_count:u64, total_count:u64, entry_type:String, score:u64 ) -> Self {
+        Self{
+            id: id as usize,
+            title,
+            watched_count: watched_count as usize,
+            total_count: total_count as usize,
+            entry_type,
+            score: score as u8,
         }
     }
 
