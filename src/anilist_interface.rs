@@ -79,7 +79,7 @@ impl AniListInterface {
         }";
         let serde_query = serde_json::json!({"query":query, "variables": {
             "userId": self.viewer_id.as_ref().unwrap(),
-            "page":1,
+            "page": page,
             "perPage":50,
         }});
         let fut_resp =
@@ -104,7 +104,7 @@ impl AniListInterface {
             };
             let new_entry = Entry::new(
                 item["id"].as_u64().unwrap(),
-                String::from(item["media"]["title"]["romaji"].as_str().unwrap()),
+                String::from(item["media"]["title"]["native"].as_str().unwrap()),
                 item["progress"].as_u64().unwrap(),
                 count,
                 item["media"]["type"].to_string(),
