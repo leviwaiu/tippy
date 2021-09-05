@@ -92,25 +92,41 @@ impl AniListInterface {
         Ok(res)
     }
 
-
-    pub fn fetch_anime_list(&mut self) -> Vec<Entry>{
-        let mut anime_list = Vec::new();
-        let firstpage = self.fetch_anime_list_page(1).unwrap();
-        let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
-        for item in list {
+    fn process_anime_entry(anime_list:&Vec<serde_json::Value>) -> Vec<Entry>{
+        let mut output_list = Vec::new();
+        for item in anime_list {
             let count = match item["media"]["episodes"].as_u64(){
                 Some(n) => n,
                 None => 9999
             };
+            let title = match item["media"]["title"]["native"].as_str(){
+                Some(title) => title,
+                None => item["media"]["title"]["romaji"].as_str().unwrap()
+            };
             let new_entry = Entry::new(
                 item["id"].as_u64().unwrap(),
-                String::from(item["media"]["title"]["native"].as_str().unwrap()),
+                String::from(title),
                 item["progress"].as_u64().unwrap(),
                 count,
                 item["media"]["type"].to_string(),
                 item["score"].as_u64().unwrap(),
             );
-            anime_list.push(new_entry);
+            output_list.push(new_entry);
+        };
+        output_list
+    }
+
+    pub fn fetch_anime_list(&mut self) -> Vec<Entry>{
+        let mut anime_list = Vec::new();
+        let firstpage = self.fetch_anime_list_page(1).unwrap();
+        let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
+        anime_list.extend(AniListInterface::process_anime_entry(list));
+
+        let extra_pages = firstpage["data"]["Page"]["pageInfo"]["lastPage"].as_u64().unwrap();
+        for x in 2..extra_pages {
+            let nextpage = self.fetch_anime_list_page(x as u8).unwrap();
+            let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
+            anime_list.extend(AniListInterface::process_anime_entry(list));
         }
         anime_list
     }

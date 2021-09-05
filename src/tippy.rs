@@ -79,15 +79,21 @@ impl Tippy{
         println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(), color::Bg(color::Reset));
         for terminal_row  in 0..height - 2 {
             if self.anime_list.len() > 0 {
-                let entry = self.anime_list[terminal_row as usize].clone();
+                let index = self.offset.y.saturating_add(terminal_row as usize);
+                let entry = self.anime_list[index].clone();
                 println!("{}\r", self.format_entry(entry));
             }
         }
+        print!("{}{}{}", color::Fg(color::Blue),self.format_status_row(), color::Fg(color::Reset));
     }
     fn format_title(&self) -> String {
         //Langauge support planning for the far future?
         let labels = ["Name","Score","Progress","Type"];
         self.format_row(labels, true)
+    }
+    fn format_status_row(&self) -> String {
+        let width = self.terminal.size().width;
+        return format!("{} {}", "Welcome to Tippy!", self.offset.y.to_string());
     }
     fn format_entry(&self, entry: Entry) -> String {
         let episode_count = format!("{}/{}",
@@ -97,7 +103,7 @@ impl Tippy{
                                 &episode_count, &entry.entry_type];
         self.format_row(labels, false)
     }
-    fn format_row(&self, labels:[&str;4], end_padding:bool) -> String{
+    fn format_row(&self, mut labels:[&str;4], end_padding:bool) -> String{
         let width = self.terminal.size().width as usize;
 
         let mut unicode_widths:Vec<usize> = Vec::new();
@@ -106,11 +112,24 @@ impl Tippy{
             unicode_widths.push(label_width);
         }
 
-        let padding_one = " ".repeat(width / 2 - unicode_widths[0]);
+        let mut label_one :String = labels[0].to_string();
+        let mut pad: isize = width as isize * 3 / 5 - unicode_widths[0] as isize;
+        if pad < 5{
+            let mut label_list = labels[0].graphemes(true).collect::<Vec<&str>>();
+            let mut label = label_list.clone().into_iter().map(|s| s.to_string()).collect::<String>();
+            while UnicodeWidthStr::width(label.as_str()) > (width * 3 / 5 - 5) {
+                label_list.pop();
+                label = label_list.clone().into_iter().map(|s| s.to_string()).collect::<String>();
+            }
+            label_one = label.clone();
+            pad = 5;
+        };
+
+        let padding_one = " ".repeat(pad as usize);
         let padding_two = " ".repeat(width / 8 - unicode_widths[1]);
         let padding_three = " ".repeat(width / 8 - unicode_widths[2]);
 
-        let string = format!("{}{}{}{}{}{}{}", labels[0], padding_one, labels[1], padding_two,
+        let string = format!("{}{}{}{}{}{}{}", label_one, padding_one, labels[1], padding_two,
                              labels[2], padding_three, labels[3]);
         if end_padding {
             let padding_four = " ".repeat(width - string.graphemes(true).count());
@@ -121,8 +140,8 @@ impl Tippy{
         }
     }
     fn scroll(&mut self){
-        let Position {x, y} = self.selected;
-        let width = self.terminal.size().width as usize;
+        let Position {x:_, y} = self.selected;
+        let _width = self.terminal.size().width as usize;
         let height = self.terminal.size().height as usize;
         let mut offset = &mut self.offset;
 
@@ -135,7 +154,7 @@ impl Tippy{
     }
     fn move_cursor(&mut self, key:Key){
         let terminal_height = self.terminal.size().height as usize;
-        let Position {mut x, mut y} = self.selected;
+        let Position {x, mut y} = self.selected;
         let list_length = self.anime_list.len();
 
         match key {
@@ -144,6 +163,20 @@ impl Tippy{
                 if y < list_length {
                     y = y.saturating_add(1);
                 },
+            Key::PageUp => {
+                y = if y > terminal_height {
+                    y.saturating_sub(terminal_height)
+                } else {
+                    0
+                }
+            }
+            Key::PageDown => {
+                y = if y.saturating_add(terminal_height) < list_length {
+                    y.saturating_add(terminal_height)
+                } else {
+                    list_length
+                }
+            }
             _ => ()
         }
 

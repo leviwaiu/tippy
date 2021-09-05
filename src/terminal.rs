@@ -34,8 +34,8 @@ impl Terminal {
     pub fn size(&self) -> &Size { &self.size }
 
     pub fn debug_size_override(&mut self){
-        self.size.height = 40;
-        self.size.width = 120;
+        self.size.height = 20;
+        self.size.width = 80;
     }
 
     pub fn clear_screen() { print!("{}", termion::clear::All);}
