@@ -2,7 +2,7 @@ use crate::terminal::{Terminal, Position};
 use termion::event::Key;
 use termion::color;
 
-use crate::entry::Entry;
+use crate::entry::{Entry, EntryStatus};
 use crate::anilist_interface::AniListInterface;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
@@ -23,7 +23,7 @@ impl Tippy{
             anime_list: Vec::new(),
             quit: false,
             interface: AniListInterface::default(),
-            selected: Position{ x: 0, y: 1 },
+            selected: Position{ x: 0, y: 0 },
             offset: Position::default(),
         }
     }
@@ -54,10 +54,10 @@ impl Tippy{
             self.draw_interface();
             Terminal::cursor_position(&Position {
                 x: self.selected.x.saturating_sub(self.offset.x),
-                y: self.selected.y.saturating_sub(self.offset.y),
+                y: self.selected.y.saturating_sub(self.offset.y) + 1,
             })
         }
-        Terminal::cursor_show();
+        //Terminal::cursor_show();
         Terminal::flush()
     }
     fn process_keypresses(&mut self) -> Result<(), std::io::Error> {
@@ -68,6 +68,8 @@ impl Tippy{
             | Key::Down
             | Key::PageUp
             | Key::PageDown => self.move_cursor(pressed_key),
+            Key::Char('+')
+            | Key::Char('-') => self.edit_entry(pressed_key),
             _ => (),
         }
         self.scroll();
@@ -81,7 +83,16 @@ impl Tippy{
             if self.anime_list.len() > 0 {
                 let index = self.offset.y.saturating_add(terminal_row as usize);
                 let entry = self.anime_list[index].clone();
-                println!("{}\r", self.format_entry(entry));
+                if terminal_row as usize == self.selected.y.saturating_sub(self.offset.y) {
+                    println!("{}{}{}{}{}\r",
+                             color::Bg(color::White), color::Fg(color::Black),
+                             self.format_entry(entry),
+                             color::Bg(color::Reset),color::Fg(color::Reset)
+                    );
+                }
+                else {
+                    println!("{}\r", self.format_entry(entry));
+                }
             }
         }
         print!("{}{}{}", color::Fg(color::Blue),self.format_status_row(), color::Fg(color::Reset));
@@ -93,14 +104,15 @@ impl Tippy{
     }
     fn format_status_row(&self) -> String {
         let width = self.terminal.size().width;
-        return format!("{} {}", "Welcome to Tippy!", self.offset.y.to_string());
+        return format!("{} {} {} {}", "Welcome to Tippy!",
+                       self.offset.y.to_string(), self.selected.y.to_string(), self.terminal.size().height);
     }
     fn format_entry(&self, entry: Entry) -> String {
         let episode_count = format!("{}/{}",
                                     &entry.watched_count.to_string(),
                                     &entry.total_count.to_string());
         let labels: [&str;4] = [&entry.title, &entry.score.to_string(),
-                                &episode_count, &entry.entry_type];
+                                &episode_count, &entry.status.to_description()];
         self.format_row(labels, false)
     }
     fn format_row(&self, mut labels:[&str;4], end_padding:bool) -> String{
@@ -145,11 +157,11 @@ impl Tippy{
         let height = self.terminal.size().height as usize;
         let mut offset = &mut self.offset;
 
-        if y < offset.y {
+        if y <= offset.y {
             offset.y = y;
         }
-        else if y >= offset.y.saturating_add(height) {
-            offset.y = y.saturating_sub(height).saturating_add(1);
+        else if y >= offset.y.saturating_add(height - 2) {
+            offset.y = y.saturating_sub(height - 2).saturating_add(1);
         }
     }
     fn move_cursor(&mut self, key:Key){
@@ -160,7 +172,7 @@ impl Tippy{
         match key {
             Key::Up => y = y.saturating_sub(1),
             Key::Down =>
-                if y < list_length {
+                if y < list_length.saturating_sub(1) {
                     y = y.saturating_add(1);
                 },
             Key::PageUp => {
@@ -182,6 +194,15 @@ impl Tippy{
 
         self.selected = Position {x, y}
     }
+    fn edit_entry(&mut self, key:Key){
+        let selected_no = self.selected.y;
+        match key {
+            Key::Char('+') => self.anime_list[selected_no].add_watched(),
+            Key::Char('-') => self.anime_list[selected_no].remove_watched(),
+            _ => (),
+        }
+
+    }
     fn setup(&mut self){
         self.interface.authentication();
         self.interface.fetch_viewer();
@@ -190,6 +211,7 @@ impl Tippy{
         //REMOVE WHEN NEEDED
         //self.terminal.debug_size_override();
     }
+
 }
 
 fn die(e: &std::io::Error){

@@ -1,5 +1,5 @@
 use crate::anilist_client::AniListClient;
-use crate::entry::Entry;
+use crate::entry::{Entry, EntryStatus};
 
 pub struct AniListInterface {
     client: AniListClient,
@@ -70,10 +70,10 @@ impl AniListInterface {
                             native
                         }
                         episodes
-                        type
                     }
                     score
                     progress
+                    status
                 }
             }
         }";
@@ -108,7 +108,7 @@ impl AniListInterface {
                 String::from(title),
                 item["progress"].as_u64().unwrap(),
                 count,
-                item["media"]["type"].to_string(),
+                EntryStatus::from_string(item["status"].as_str().unwrap()).unwrap(),
                 item["score"].as_u64().unwrap(),
             );
             output_list.push(new_entry);
