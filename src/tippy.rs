@@ -80,7 +80,7 @@ impl Tippy{
         Terminal::clear_screen();
         println!("{}{}{}\r", color::Bg(color::Blue),self.format_title(), color::Bg(color::Reset));
         for terminal_row  in 0..height - 2 {
-            if self.anime_list.len() > 0 {
+            if self.anime_list.len() > 0 && self.anime_list.len() > terminal_row as usize {
                 let index = self.offset.y.saturating_add(terminal_row as usize);
                 let entry = self.anime_list[index].clone();
                 if terminal_row as usize == self.selected.y.saturating_sub(self.offset.y) {
@@ -93,6 +93,9 @@ impl Tippy{
                 else {
                     println!("{}\r", self.format_entry(entry));
                 }
+            }
+            else {
+                println!("\r");
             }
         }
         print!("{}{}{}", color::Fg(color::Blue),self.format_status_row(), color::Fg(color::Reset));
@@ -201,6 +204,7 @@ impl Tippy{
             Key::Char('-') => self.anime_list[selected_no].remove_watched(),
             _ => (),
         }
+        self.interface.edit_anime_watchcount(self.anime_list[selected_no].clone());
 
     }
     fn setup(&mut self){

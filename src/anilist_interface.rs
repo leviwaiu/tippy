@@ -92,6 +92,48 @@ impl AniListInterface {
         Ok(res)
     }
 
+    fn fetch_anime_list_page_filtered(&mut self, page:u8, status:EntryStatus) -> serde_json::Result<serde_json::Value> {
+        let query = "
+        query($userId: Int, $page: Int, $perPage: Int, $status: [MediaListStatus]){
+            Page(page:$page, perPage: $perPage){
+                pageInfo {
+                    total
+                    currentPage
+                    lastPage
+                    hasNextPage
+                    perPage
+                }
+                mediaList(userId:$userId, type:ANIME, status_in: $status){
+                    id
+                    media {
+                        title {
+                            romaji
+                            native
+                        }
+                        episodes
+                    }
+                    score
+                    progress
+                    status
+                }
+            }
+        }";
+        let serde_query = serde_json::json!({"query":query, "variables": {
+            "userId": self.viewer_id.as_ref().unwrap(),
+            "page": page,
+            "perPage":50,
+            "status": [status.to_string()],
+        }});
+        let fut_resp =
+            self.client.fetch_auth_content(serde_query);
+        let result = match fut_resp {
+            Ok(res) => res,
+            Err(_) => panic!("Error while fetching authcode"),
+        };
+        let res: serde_json::Value = serde_json::from_str(&result)?;
+        Ok(res)
+    }
+
     fn process_anime_entry(anime_list:&Vec<serde_json::Value>) -> Vec<Entry>{
         let mut output_list = Vec::new();
         for item in anime_list {
@@ -118,16 +160,39 @@ impl AniListInterface {
 
     pub fn fetch_anime_list(&mut self) -> Vec<Entry>{
         let mut anime_list = Vec::new();
-        let firstpage = self.fetch_anime_list_page(1).unwrap();
+        let firstpage = self.fetch_anime_list_page_filtered(1, EntryStatus::CURRENT).unwrap();
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
         anime_list.extend(AniListInterface::process_anime_entry(list));
 
         let extra_pages = firstpage["data"]["Page"]["pageInfo"]["lastPage"].as_u64().unwrap();
         for x in 2..extra_pages {
-            let nextpage = self.fetch_anime_list_page(x as u8).unwrap();
+            let nextpage = self.fetch_anime_list_page_filtered(x as u8, EntryStatus::CURRENT).unwrap();
             let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
             anime_list.extend(AniListInterface::process_anime_entry(list));
         }
         anime_list
+    }
+
+    pub fn edit_anime_watchcount(&mut self, edited_entry:Entry) -> serde_json::Result<serde_json::Value>{
+        let query="
+        mutation($id: Int, $progress: Int){
+            SaveMediaListEntry(id: $id, progress:$progress) {
+                id
+                progress
+            }
+        }
+        ";
+        let serde_query = serde_json::json!({"query":query, "variables": {
+            "id": edited_entry.id,
+            "progress": edited_entry.watched_count,
+        }});
+        let fut_resp =
+            self.client.fetch_auth_content(serde_query);
+        let result = match fut_resp {
+            Ok(res) => res,
+            Err(_) => panic!("Error while fetching authcode"),
+        };
+        let res: serde_json::Value = serde_json::from_str(&result)?;
+        Ok(res)
     }
 }
