@@ -6,6 +6,7 @@ use crate::entry::{Entry, EntryStatus};
 use crate::anilist_interface::AniListInterface;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
+use crate::settings::Settings;
 
 pub struct Tippy{
     terminal: Terminal,
@@ -14,6 +15,7 @@ pub struct Tippy{
     interface: AniListInterface,
     selected: Position,
     offset: Position,
+    settings: Settings,
 }
 
 impl Tippy{
@@ -25,6 +27,7 @@ impl Tippy{
             interface: AniListInterface::default(),
             selected: Position{ x: 0, y: 0 },
             offset: Position::default(),
+            settings: Settings::default(),
         }
     }
     pub fn run(&mut self) {
@@ -70,6 +73,7 @@ impl Tippy{
             | Key::PageDown => self.move_cursor(pressed_key),
             Key::Char('+')
             | Key::Char('-') => self.edit_entry(pressed_key),
+            Key::Char('l') => (),
             _ => (),
         }
         self.scroll();
@@ -112,10 +116,10 @@ impl Tippy{
     }
     fn format_entry(&self, entry: Entry) -> String {
         let episode_count = format!("{}/{}",
-                                    &entry.watched_count.to_string(),
-                                    &entry.total_count.to_string());
-        let labels: [&str;4] = [&entry.title, &entry.score.to_string(),
-                                &episode_count, &entry.status.to_description()];
+                                    &entry.watched_count().to_string(),
+                                    &entry.total_count().to_string());
+        let labels: [&str;4] = [&entry.title(), &entry.score().to_string(),
+                                &episode_count, &entry.status().to_description()];
         self.format_row(labels, false)
     }
     fn format_row(&self, mut labels:[&str;4], end_padding:bool) -> String{
@@ -200,7 +204,15 @@ impl Tippy{
     fn edit_entry(&mut self, key:Key){
         let selected_no = self.selected.y;
         match key {
-            Key::Char('+') => self.anime_list[selected_no].add_watched(),
+            Key::Char('+') => {
+                if self.anime_list[selected_no].watched_count() == 0
+                    && self.anime_list[selected_no].status() == EntryStatus::PLANNING
+                    && self.settings.auto_change_status
+                {
+                    self.anime_list[selected_no].set_status(EntryStatus::CURRENT);
+                }
+                self.anime_list[selected_no].add_watched()
+            },
             Key::Char('-') => self.anime_list[selected_no].remove_watched(),
             _ => (),
         }

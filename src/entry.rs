@@ -1,14 +1,14 @@
 #[derive(Clone)]
 pub struct Entry{
-    pub id: usize,
-    pub title: String,
-    pub watched_count: usize,
-    pub total_count: usize,
-    pub status: EntryStatus,
-    pub score: u8,
+    id: usize,
+    title: String,
+    watched_count: usize,
+    total_count: usize,
+    status: EntryStatus,
+    score: u8,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum EntryStatus {
     CURRENT,
     PLANNING,
@@ -77,6 +77,8 @@ impl Entry{
         }
     }
 
+
+
     fn set_watched(&mut self, count: usize){
         if count <= self.total_count{
             self.watched_count = count;
@@ -90,6 +92,44 @@ impl Entry{
     }
 
     pub fn remove_watched(&mut self){
-        self.watched_count.saturating_sub(1);
+        self.watched_count = self.watched_count.saturating_sub(1);
+    }
+
+    pub fn id(&self) -> usize {
+        self.id
+    }
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+    pub fn watched_count(&self) -> usize {
+        self.watched_count
+    }
+    pub fn total_count(&self) -> usize {
+        self.total_count
+    }
+    pub fn status(&self) -> EntryStatus {
+        self.status.clone()
+    }
+    pub fn score(&self) -> u8 {
+        self.score
+    }
+
+    pub fn set_id(&mut self, id: usize) {
+        self.id = id;
+    }
+    pub fn set_title(&mut self, title: String) {
+        self.title = title;
+    }
+    pub fn set_watched_count(&mut self, watched_count: usize) {
+        self.watched_count = watched_count;
+    }
+    pub fn set_total_count(&mut self, total_count: usize) {
+        self.total_count = total_count;
+    }
+    pub fn set_status(&mut self, status: EntryStatus) {
+        self.status = status;
+    }
+    pub fn set_score(&mut self, score: u8) {
+        self.score = score;
     }
 }

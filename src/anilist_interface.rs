@@ -183,8 +183,8 @@ impl AniListInterface {
         }
         ";
         let serde_query = serde_json::json!({"query":query, "variables": {
-            "id": edited_entry.id,
-            "progress": edited_entry.watched_count,
+            "id": edited_entry.id(),
+            "progress": edited_entry.watched_count(),
         }});
         let fut_resp =
             self.client.fetch_auth_content(serde_query);
