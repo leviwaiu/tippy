@@ -25,7 +25,7 @@ impl AniListInterface {
             Ok(res) => res,
             Err(_) => panic!("Error while fetching authcode"),
         };
-        self.client.set_auth(Some(result.access_token));
+        self.client.set_auth(Some(result.access_token().to_string()));
     }
 
     pub fn fetch_viewer(&mut self) -> serde_json::Result<u64> {

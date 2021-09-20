@@ -1,6 +1,6 @@
 pub struct Settings {
-    pub title_style: String,
-    pub auto_change_status: bool,
+    title_style: String,
+    auto_change_status: bool,
 }
 
 impl Settings {
@@ -9,5 +9,9 @@ impl Settings {
             title_style: String::from("native"),
             auto_change_status: true,
         }
+    }
+
+    pub fn auto_change_status(&self) -> bool {
+        self.auto_change_status
     }
 }

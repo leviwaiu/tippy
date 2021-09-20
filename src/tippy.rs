@@ -207,7 +207,7 @@ impl Tippy{
             Key::Char('+') => {
                 if self.anime_list[selected_no].watched_count() == 0
                     && self.anime_list[selected_no].status() == EntryStatus::PLANNING
-                    && self.settings.auto_change_status
+                    && self.settings.auto_change_status()
                 {
                     self.anime_list[selected_no].set_status(EntryStatus::CURRENT);
                 }
