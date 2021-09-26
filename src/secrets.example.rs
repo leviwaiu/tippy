@@ -1,1 +1,1 @@
-pub const CLIENT_SECRET: &str = "";
+pub const CLIENT_SECRET: &str = "<enter client secret here>";
