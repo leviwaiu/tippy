@@ -5,19 +5,19 @@ pub mod mainlist;
 pub mod settings;
 mod anime_info;
 
-pub(crate) enum Scene {
-    MainList(MainList),
+pub(crate) enum Scene<'term> {
+    MainList(MainList<'term>),
 }
 
-pub trait SceneTrait{
+pub trait SceneTrait<'a>{
     fn show_view(&self);
 
     fn format_status_row(&self) -> String;
 
-    fn set_terminal(&mut self, terminal: Terminal);
+    fn set_terminal(&mut self, terminal: &'a Terminal);
 }
 
-impl SceneTrait for Scene {
+impl<'scene> SceneTrait<'scene> for Scene<'scene> {
     fn show_view(&self) {
         match self{
             Scene::MainList(mainlist) => mainlist.show_view()
@@ -30,7 +30,7 @@ impl SceneTrait for Scene {
         }
     }
 
-    fn set_terminal(&mut self, terminal:Terminal) {
+    fn set_terminal(&mut self, terminal: &'scene Terminal) {
         match self {
             Scene::MainList(main_list) => main_list.set_terminal(terminal)
         }

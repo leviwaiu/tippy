@@ -3,12 +3,12 @@ use termion::event::Key;
 
 use crate::entry::{Entry, EntryStatus};
 use crate::anilist_interface::AniListInterface;
-use unicode_width::UnicodeWidthStr;
+
 use crate::scene::settings::Settings;
 use crate::scene::{SceneTrait, Scene};
 use crate::scene::mainlist::MainList;
 
-pub struct Tippy {
+pub struct Tippy<'a> {
     terminal: Terminal,
     anime_list: Vec<Entry>,
     quit: bool,
@@ -16,15 +16,15 @@ pub struct Tippy {
     selected: Position,
     offset: Position,
 
-    scene: Scene,
+    scene: Scene<'a>,
 
     settings: Settings,
-    main_list:MainList,
+    main_list:MainList<'a>,
 }
 
-impl Tippy{
+impl Tippy<'_>{
     pub fn default() -> Self {
-        let out = Self {
+        Self {
             terminal: Terminal::default().expect("Terminal Initialisation Failed"),
             anime_list: Vec::new(),
             quit: false,
@@ -36,8 +36,7 @@ impl Tippy{
 
             settings: Settings::default(),
             main_list: MainList::default(),
-        };
-        out
+        }
     }
     pub fn run(&mut self) {
 
@@ -149,7 +148,8 @@ impl Tippy{
         self.interface.edit_anime_watchcount(self.anime_list[selected_no].clone());
 
     }
-    fn setup(&mut self){
+    fn setup(& mut self){
+
 
         self.terminal.put_into_raw().expect("Terminal Initialisation Failed");
 

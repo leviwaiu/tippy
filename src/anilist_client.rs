@@ -12,6 +12,7 @@ pub struct AniListClient {
 }
 
 
+
 #[derive(Deserialize, Debug)]
 pub struct AuthReply{
     expires_in:usize,

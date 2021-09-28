@@ -6,19 +6,19 @@ pub struct Settings {
     auto_change_status: bool,
 }
 
-impl SceneTrait for Settings {
-    fn show_view(&self) {
-
-    }
-
-    fn format_status_row(&self) -> String {
-        todo!()
-    }
-
-    fn set_terminal(&mut self, terminal:Terminal) {
-        todo!()
-    }
-}
+// impl SceneTrait for Settings {
+//     fn show_view(&self) {
+//
+//     }
+//
+//     fn format_status_row(&self) -> String {
+//         todo!()
+//     }
+//
+//     fn set_terminal(&mut self, terminal:Terminal) {
+//         todo!()
+//     }
+// }
 
 impl Settings {
     pub fn default() -> Self {

@@ -4,19 +4,18 @@ use crate::terminal::{Terminal, Position};
 use unicode_width::UnicodeWidthStr;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::scene::SceneTrait;
-use std::any::Any;
 use crate::anilist_interface::AniListInterface;
-use std::error::Error;
 
 
-pub struct MainList {
+pub struct MainList<'term> {
     anime_list:Vec<Entry>,
-    terminal: Option<Terminal>,
+    terminal: Option<&'term Terminal>,
     offset: Position,
     selected: Position,
 }
 
-impl SceneTrait for MainList {
+
+impl<'term> SceneTrait<'term> for MainList<'term> {
     fn show_view(&self){
         Terminal::clear_screen();
         Terminal::println_bgcolor(&*self.format_title(), Box::new(color::Blue));
@@ -28,16 +27,16 @@ impl SceneTrait for MainList {
         return format!("{}", "Welcome to Tippy!");
     }
 
-    fn set_terminal(&mut self, terminal: Terminal){
+    fn set_terminal (&mut self, terminal: &'term Terminal){
         self.terminal = Some(terminal)
     }
 }
 
-impl MainList {
+impl MainList<'_> {
     pub fn default() -> Self{
         Self{
             anime_list: Vec::new(),
-            terminal: Some(Terminal::default().expect("Terminal Initialisation Failed")),
+            terminal: None,
             offset: Position::default(),
             selected: Position::default(),
         }

@@ -20,6 +20,10 @@ pub struct Terminal {
     _stdout: Option<RawTerminal<std::io::Stdout>>,
 }
 
+struct TerminalStatic {
+    terminal: Option<Terminal>,
+}
+
 
 impl Terminal {
 
