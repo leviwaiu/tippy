@@ -1,5 +1,5 @@
-use std::any::Any;
 use crate::scene::mainlist::MainList;
+use crate::terminal::Terminal;
 
 pub mod mainlist;
 pub mod settings;
@@ -9,11 +9,12 @@ pub(crate) enum Scene {
     MainList(MainList),
 }
 
-pub trait SceneTrait {
+pub trait SceneTrait{
     fn show_view(&self);
 
     fn format_status_row(&self) -> String;
 
+    fn set_terminal(&mut self, terminal: Terminal);
 }
 
 impl SceneTrait for Scene {
@@ -26,6 +27,12 @@ impl SceneTrait for Scene {
     fn format_status_row(&self) -> String {
         match self {
             Scene::MainList(main_list) => main_list.format_status_row()
+        }
+    }
+
+    fn set_terminal(&mut self, terminal:Terminal) {
+        match self {
+            Scene::MainList(main_list) => main_list.set_terminal(terminal)
         }
     }
 }

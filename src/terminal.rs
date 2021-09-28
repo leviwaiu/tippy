@@ -17,10 +17,12 @@ pub struct Position {
 
 pub struct Terminal {
     size: Size,
-    _stdout: RawTerminal<std::io::Stdout>,
+    _stdout: Option<RawTerminal<std::io::Stdout>>,
 }
 
+
 impl Terminal {
+
     pub fn default() -> Result<Self, std::io::Error> {
         let size = termion::terminal_size()?;
         Ok(Self {
@@ -28,9 +30,15 @@ impl Terminal {
                 width: size.0,
                 height: size.1,
             },
-            _stdout: stdout().into_raw_mode()?,
+            _stdout: None,
         })
     }
+
+    pub fn put_into_raw(&mut self) -> Result<(), std::io::Error> {
+        self._stdout = Some(stdout().into_raw_mode()?);
+        Ok(())
+    }
+
     pub fn size(&self) -> &Size { &self.size }
 
     pub fn debug_size_override(&mut self) {

@@ -6,11 +6,12 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::scene::SceneTrait;
 use std::any::Any;
 use crate::anilist_interface::AniListInterface;
+use std::error::Error;
 
 
 pub struct MainList {
     anime_list:Vec<Entry>,
-    terminal: Terminal,
+    terminal: Option<Terminal>,
     offset: Position,
     selected: Position,
 }
@@ -27,20 +28,23 @@ impl SceneTrait for MainList {
         return format!("{}", "Welcome to Tippy!");
     }
 
+    fn set_terminal(&mut self, terminal: Terminal){
+        self.terminal = Some(terminal)
+    }
 }
 
 impl MainList {
     pub fn default() -> Self{
         Self{
             anime_list: Vec::new(),
-            terminal: Terminal::default().expect("Terminal Initialisation Failed"),
+            terminal: Some(Terminal::default().expect("Terminal Initialisation Failed")),
             offset: Position::default(),
             selected: Position::default(),
         }
     }
 
     pub fn print_list(&self) {
-        let height = self.terminal.size().height;
+        let height = self.terminal.as_ref().unwrap().size().height;
 
         for terminal_row in 0..height - 2 {
             if self.anime_list.len() > 0 && self.anime_list.len() > terminal_row as usize {
@@ -74,7 +78,7 @@ impl MainList {
     }
 
     fn format_row(&self, labels:[&str;4], end_padding:bool) -> String{
-        let width = self.terminal.size().width as usize;
+        let width = self.terminal.as_ref().unwrap().size().width as usize;
 
         let mut unicode_widths:Vec<usize> = Vec::new();
         for label in labels {

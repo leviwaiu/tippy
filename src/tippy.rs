@@ -1,16 +1,14 @@
 use crate::terminal::{Terminal, Position};
 use termion::event::Key;
-use termion::color;
 
 use crate::entry::{Entry, EntryStatus};
 use crate::anilist_interface::AniListInterface;
-use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 use crate::scene::settings::Settings;
 use crate::scene::{SceneTrait, Scene};
 use crate::scene::mainlist::MainList;
 
-pub struct Tippy{
+pub struct Tippy {
     terminal: Terminal,
     anime_list: Vec<Entry>,
     quit: bool,
@@ -26,7 +24,7 @@ pub struct Tippy{
 
 impl Tippy{
     pub fn default() -> Self {
-        Self {
+        let out = Self {
             terminal: Terminal::default().expect("Terminal Initialisation Failed"),
             anime_list: Vec::new(),
             quit: false,
@@ -38,7 +36,8 @@ impl Tippy{
 
             settings: Settings::default(),
             main_list: MainList::default(),
-        }
+        };
+        out
     }
     pub fn run(&mut self) {
 
@@ -49,6 +48,7 @@ impl Tippy{
                 die(&error);
             }
             if self.quit{
+                Terminal::cursor_show();
                 break;
             }
             if let Err(error) = self.process_keypresses() {
@@ -83,7 +83,6 @@ impl Tippy{
             | Key::PageDown => self.move_cursor(pressed_key),
             Key::Char('+')
             | Key::Char('-') => self.edit_entry(pressed_key),
-            Key::Char('l') => self.change_sort(),
             _ => (),
         }
         self.scroll();
@@ -150,10 +149,9 @@ impl Tippy{
         self.interface.edit_anime_watchcount(self.anime_list[selected_no].clone());
 
     }
-    fn change_sort(&mut self){
-
-    }
     fn setup(&mut self){
+
+        self.terminal.put_into_raw().expect("Terminal Initialisation Failed");
 
         self.interface.authentication();
         self.interface.fetch_viewer();
