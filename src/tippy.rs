@@ -19,7 +19,6 @@ pub struct Tippy {
     scene: Scene,
 
     settings: Settings,
-    main_list:MainList,
 }
 
 impl Tippy{
@@ -33,9 +32,8 @@ impl Tippy{
             offset: Position::default(),
 
             scene: Scene::MainList(MainList::default()),
-
             settings: Settings::default(),
-            main_list: MainList::default(),
+
         };
         out
     }
@@ -48,7 +46,6 @@ impl Tippy{
                 die(&error);
             }
             if self.quit{
-                Terminal::cursor_show();
                 break;
             }
             if let Err(error) = self.process_keypresses() {
@@ -61,31 +58,31 @@ impl Tippy{
         Terminal::cursor_position(&Position::default());
         if self.quit {
             Terminal::clear_screen();
+            Terminal::cursor_show();
             println!("Exiting...\r");
         }
         else {
-            self.scene.show_view();
+            self.scene.show_view(&self.terminal);
             Terminal::cursor_position(&Position {
                 x: self.selected.x.saturating_sub(self.offset.x),
                 y: self.selected.y.saturating_sub(self.offset.y) + 1,
             })
         }
-        //Terminal::cursor_show();
         Terminal::flush()
     }
     fn process_keypresses(&mut self) -> Result<(), std::io::Error> {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Char('q') => self.quit = true,
-            Key::Up
-            | Key::Down
-            | Key::PageUp
-            | Key::PageDown => self.move_cursor(pressed_key),
-            Key::Char('+')
-            | Key::Char('-') => self.edit_entry(pressed_key),
-            _ => (),
+            // Key::Up
+            // | Key::Down
+            // | Key::PageUp
+            // | Key::PageDown => self.move_cursor(pressed_key),
+            // Key::Char('+')
+            // | Key::Char('-') => self.edit_entry(pressed_key),
+            _ => self.scene.process_key(pressed_key, &self.terminal, &self.settings),
         }
-        self.scroll();
+
         Ok(())
     }
     fn scroll(&mut self){

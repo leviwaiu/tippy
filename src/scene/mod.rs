@@ -1,5 +1,7 @@
 use crate::scene::mainlist::MainList;
 use crate::terminal::Terminal;
+use termion::event::Key;
+use crate::scene::settings::Settings;
 
 pub mod mainlist;
 pub mod settings;
@@ -10,17 +12,18 @@ pub(crate) enum Scene {
 }
 
 pub trait SceneTrait{
-    fn show_view(&self);
+    fn show_view(&self, terminal:&Terminal);
 
     fn format_status_row(&self) -> String;
 
-    fn set_terminal(&mut self, terminal: Terminal);
+    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:&Settings);
+
 }
 
 impl SceneTrait for Scene {
-    fn show_view(&self) {
+    fn show_view(&self, terminal: &Terminal) {
         match self{
-            Scene::MainList(mainlist) => mainlist.show_view()
+            Scene::MainList(main_list) => main_list.show_view(terminal)
         }
     }
 
@@ -30,9 +33,9 @@ impl SceneTrait for Scene {
         }
     }
 
-    fn set_terminal(&mut self, terminal:Terminal) {
+    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:&Settings) {
         match self {
-            Scene::MainList(main_list) => main_list.set_terminal(terminal)
+            Scene::MainList(main_list) => main_list.process_key(key, terminal, settings)
         }
     }
 }

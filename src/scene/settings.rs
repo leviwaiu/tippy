@@ -1,5 +1,17 @@
 use crate::scene::SceneTrait;
 use crate::terminal::Terminal;
+use termion::event::Key;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+
+lazy_static!{
+    static ref SETTINGS: Mutex<Settings> = Mutex::new(
+        Settings {
+            title_style: String::from("native"),
+            auto_change_status:true,
+        }
+    );
+}
 
 pub struct Settings {
     title_style: String,
@@ -7,7 +19,7 @@ pub struct Settings {
 }
 
 impl SceneTrait for Settings {
-    fn show_view(&self) {
+    fn show_view(&self, terminal: &Terminal) {
 
     }
 
@@ -15,7 +27,7 @@ impl SceneTrait for Settings {
         todo!()
     }
 
-    fn set_terminal(&mut self, terminal:Terminal) {
+    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:&Settings) {
         todo!()
     }
 }
