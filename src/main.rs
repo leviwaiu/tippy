@@ -6,8 +6,7 @@ mod entry;
 mod anilist_client;
 mod secrets;
 mod anilist_interface;
-mod settings;
-mod mainlist;
+mod scene;
 
 fn main() {
     Tippy::default().run()

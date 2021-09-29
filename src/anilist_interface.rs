@@ -173,7 +173,7 @@ impl AniListInterface {
         anime_list
     }
 
-    pub fn edit_anime_watchcount(&mut self, edited_entry:Entry) -> serde_json::Result<serde_json::Value>{
+    pub fn edit_anime_watchcount(&self, edited_entry:Entry) -> serde_json::Result<serde_json::Value>{
         let query="
         mutation($id: Int, $progress: Int){
             SaveMediaListEntry(id: $id, progress:$progress) {
