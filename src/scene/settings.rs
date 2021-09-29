@@ -3,6 +3,7 @@ use crate::terminal::Terminal;
 use termion::event::Key;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use crate::anilist_interface::AniListInterface;
 
 lazy_static!{
     static ref SETTINGS: Mutex<Settings> = Mutex::new(
@@ -19,7 +20,7 @@ pub struct Settings {
 }
 
 impl SceneTrait for Settings {
-    fn show_view(&self, terminal: &Terminal) {
+    fn show_view(&self, _terminal: &Terminal) {
 
     }
 
@@ -27,7 +28,11 @@ impl SceneTrait for Settings {
         todo!()
     }
 
-    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:&Settings) {
+    fn process_key(&mut self, _key:Key, _terminal: &Terminal, _settings:&Settings) {
+        todo!()
+    }
+
+    fn connect_interface(&mut self, _interface: &AniListInterface) {
         todo!()
     }
 }

@@ -126,7 +126,7 @@ impl AniListClient {
     }
 
     #[tokio::main]
-    pub async fn fetch_auth_content(&mut self, query:serde_json::Value)
+    pub async fn fetch_auth_content(&self, query:serde_json::Value)
         -> Result<String, reqwest::Error> {
         let client = reqwest::Client::new();
         let resp = client.post("https://graphql.anilist.co/")

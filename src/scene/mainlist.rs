@@ -15,6 +15,8 @@ pub struct MainList {
     anime_list:Vec<Entry>,
     offset: Position,
     selected: Position,
+
+    for_change:Option<Entry>,
 }
 
 impl SceneTrait for MainList {
@@ -41,6 +43,16 @@ impl SceneTrait for MainList {
         }
         self.scroll(terminal);
     }
+
+    fn connect_interface(&mut self, interface: &AniListInterface) {
+        match self.for_change.clone() {
+            Some(item) => {
+                interface.edit_anime_watchcount(item);
+                self.for_change = None;
+            }
+            None => (),
+        };
+    }
 }
 
 impl MainList {
@@ -49,6 +61,8 @@ impl MainList {
             anime_list: Vec::new(),
             offset: Position::default(),
             selected: Position::default(),
+
+            for_change:None,
         }
     }
 
@@ -169,6 +183,8 @@ impl MainList {
             Key::Char('-') => self.anime_list[selected_no].remove_watched(),
             _ => (),
         }
+
+        self.for_change = Some(self.anime_list[selected_no].clone());
         //self.interface.edit_anime_watchcount(self.anime_list[selected_no].clone());
 
     }
