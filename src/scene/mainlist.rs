@@ -4,9 +4,7 @@ use crate::terminal::{Terminal, Position};
 use unicode_width::UnicodeWidthStr;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::scene::SceneTrait;
-use std::any::Any;
 use crate::anilist_interface::AniListInterface;
-use std::error::Error;
 use termion::event::Key;
 use crate::scene::settings::Settings;
 
@@ -21,7 +19,6 @@ pub struct MainList {
 
 impl SceneTrait for MainList {
     fn show_view(&self, terminal: &Terminal){
-        Terminal::clear_screen();
         Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.print_list(terminal);
         Terminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
@@ -31,7 +28,7 @@ impl SceneTrait for MainList {
         return format!("{}", "Welcome to Tippy!");
     }
 
-    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:&Settings) {
+    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:Settings) {
         match key {
             Key::Up
             | Key::Down
@@ -39,6 +36,7 @@ impl SceneTrait for MainList {
             | Key::PageDown => self.move_cursor(key, terminal),
             Key::Char('+')
             | Key::Char('-') => self.edit_entry(key, settings),
+            Key::Char('s') => (),
             _ => (),
         }
         self.scroll(terminal);
@@ -66,7 +64,7 @@ impl MainList {
         }
     }
 
-    pub fn print_list(&self, terminal: &Terminal) {
+    fn print_list(&self, terminal: &Terminal) {
         let height = terminal.size().height;
 
         for terminal_row in 0..height - 2 {
@@ -168,7 +166,7 @@ impl MainList {
         self.selected = Position {x, y}
     }
 
-    fn edit_entry(&mut self, key:Key, settings: &Settings){
+    fn edit_entry(&mut self, key:Key, settings: Settings){
         let selected_no = self.selected.y;
         match key {
             Key::Char('+') => {
@@ -185,7 +183,6 @@ impl MainList {
         }
 
         self.for_change = Some(self.anime_list[selected_no].clone());
-        //self.interface.edit_anime_watchcount(self.anime_list[selected_no].clone());
 
     }
 
