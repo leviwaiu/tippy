@@ -1,14 +1,14 @@
 use crate::entry::{Entry, EntryStatus};
 use termion::color;
-use crate::terminal::{Terminal, Position};
+use crate::terminal::{Terminal, Position, BoxSelection};
 use unicode_width::UnicodeWidthStr;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::scene::SceneTrait;
-use std::any::Any;
 use crate::anilist_interface::AniListInterface;
-use std::error::Error;
 use termion::event::Key;
 use crate::scene::settings::Settings;
+
+use strum::IntoEnumIterator;
 
 
 pub struct MainList {
@@ -17,28 +17,72 @@ pub struct MainList {
     selected: Position,
 
     for_change:Option<Entry>,
+
+    current_sort:EntryStatus,
+    sort_change:bool,
+
+    sort_select:Option<SortSelect>,
+}
+
+struct SortSelect {
+    list: Vec<BoxSelection>,
+    current_sel: usize,
+}
+
+impl SortSelect {
+    pub fn default(current_sort:EntryStatus) -> Self {
+        let mut current_sel = 0;
+        Self {
+            list:{
+                let mut vec = Vec::new();
+                let mut counter = 0;
+                for status in EntryStatus::iter() {
+                    if status == current_sort {
+                        vec.push(BoxSelection { label: status.to_description(), selected: true });
+                        current_sel = counter;
+                    } else {
+                        vec.push(BoxSelection { label: status.to_description(), selected: false });
+
+                    }
+                    counter += 1;
+                }
+                vec
+            },
+            current_sel: current_sel as usize,
+        }
+    }
 }
 
 impl SceneTrait for MainList {
     fn show_view(&self, terminal: &Terminal){
-        Terminal::clear_screen();
         Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.print_list(terminal);
         Terminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
+        if let Some(x) = &self.sort_select {
+            self.show_sorting(terminal);
+        }
     }
 
     fn format_status_row(&self) -> String {
-        return format!("{}", "Welcome to Tippy!");
+        return format!("{}{}", "Welcome to Tippy!", self.temp_debug_ret_string());
     }
 
-    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:&Settings) {
+
+    fn process_key(&mut self, key:Key, terminal: &Terminal, settings:Settings) {
         match key {
             Key::Up
             | Key::Down
             | Key::PageUp
-            | Key::PageDown => self.move_cursor(key, terminal),
+            | Key::PageDown
+            | Key::Char('\n') => self.move_cursor(key, terminal),
             Key::Char('+')
             | Key::Char('-') => self.edit_entry(key, settings),
+            Key::Char('s') => {
+                match self.sort_select {
+                    Some(_) => self.sort_select = None,
+                    None => self.sort_select = Some(SortSelect::default(self.current_sort.clone()))
+                }
+            }
             _ => (),
         }
         self.scroll(terminal);
@@ -52,6 +96,12 @@ impl SceneTrait for MainList {
             }
             None => (),
         };
+        if self.sort_change {
+            self.set_anime_list(interface.fetch_anime_list(self.current_sort.clone()));
+            self.selected = Position::default();
+            self.offset = Position::default();
+            self.sort_change = false;
+        }
     }
 }
 
@@ -63,10 +113,15 @@ impl MainList {
             selected: Position::default(),
 
             for_change:None,
+
+            current_sort: EntryStatus::CURRENT,
+            sort_change: false,
+
+            sort_select:None,
         }
     }
 
-    pub fn print_list(&self, terminal: &Terminal) {
+    fn print_list(&self, terminal: &Terminal) {
         let height = terminal.size().height;
 
         for terminal_row in 0..height - 2 {
@@ -137,38 +192,91 @@ impl MainList {
         }
     }
 
+    fn show_sorting(&self, terminal: &Terminal){
+        let terminal_height = terminal.size().height as usize;
+        let terminal_width = terminal.size().width as usize;
+        let box_start = (terminal_height / 2) - 5;
+        let box_width = (terminal_width / 2) - 30;
+
+        let mut message_vec = Vec::new();
+        message_vec.push(BoxSelection{label:String::from("Set List Category:"), selected:false });
+
+        let select = self.sort_select.as_ref().unwrap();
+        let boxmessages: &Vec<BoxSelection> = select.list.as_ref();
+        for x in 0..select.list.len() {
+            message_vec.push(boxmessages[x].clone());
+        }
+
+        Terminal::print_list_box(message_vec, Position{x:box_width, y:box_start}, (30, 6))
+
+    }
+
     fn move_cursor(&mut self, key:Key, terminal: &Terminal){
         let terminal_height = terminal.size().height as usize;
         let Position {x, mut y} = self.selected;
         let list_length = self.anime_list.len();
 
-        match key {
-            Key::Up => y = y.saturating_sub(1),
-            Key::Down =>
-                if y < list_length.saturating_sub(1) {
-                    y = y.saturating_add(1);
+        if let Some(x) = self.sort_select.as_mut(){
+            let mut enter = false;
+            match key {
+                Key::Up => x.current_sel = x.current_sel.saturating_sub(1),
+                Key::Down => {
+                    if x.current_sel <= (x.list.len() - 2) {
+                        x.current_sel = x.current_sel.saturating_add(1);
+                    }
                 },
-            Key::PageUp => {
-                y = if y > terminal_height {
-                    y.saturating_sub(terminal_height)
-                } else {
-                    0
+                Key::Char('\n') => {
+                    enter = true;
+                },
+                _ => (),
+            }
+            for no in 0.. x.list.len() {
+                if no == x.current_sel {
+                    if enter {
+                        self.current_sort = EntryStatus::from_description(&*x.list[no].label).unwrap();
+                        self.sort_select = None;
+                        self.sort_change = true;
+                        return;
+                    }
+                    else {
+                        x.list[no].selected = true;
+                    }
+
+                }
+                else {
+                    x.list[no].selected = false;
                 }
             }
-            Key::PageDown => {
-                y = if y.saturating_add(terminal_height) < list_length {
-                    y.saturating_add(terminal_height)
-                } else {
-                    list_length
+        }
+        else {
+            match key {
+                Key::Up => y = y.saturating_sub(1),
+                Key::Down =>
+                    if y < list_length.saturating_sub(1) {
+                        y = y.saturating_add(1);
+                    },
+                Key::PageUp => {
+                    y = if y > terminal_height {
+                        y.saturating_sub(terminal_height)
+                    } else {
+                        0
+                    }
                 }
+                Key::PageDown => {
+                    y = if y.saturating_add(terminal_height) < list_length {
+                        y.saturating_add(terminal_height)
+                    } else {
+                        list_length
+                    }
+                }
+                _ => ()
             }
-            _ => ()
         }
 
         self.selected = Position {x, y}
     }
 
-    fn edit_entry(&mut self, key:Key, settings: &Settings){
+    fn edit_entry(&mut self, key:Key, settings: Settings){
         let selected_no = self.selected.y;
         match key {
             Key::Char('+') => {
@@ -185,7 +293,6 @@ impl MainList {
         }
 
         self.for_change = Some(self.anime_list[selected_no].clone());
-        //self.interface.edit_anime_watchcount(self.anime_list[selected_no].clone());
 
     }
 
@@ -206,6 +313,27 @@ impl MainList {
     pub fn set_anime_list(&mut self, list: Vec<Entry>){
         self.anime_list = list;
     }
+
+    pub fn current_sort(&self) -> EntryStatus {
+        self.current_sort.clone()
+    }
+
+    fn temp_debug_ret_string(&self) -> String {
+        match self.sort_select.as_ref() {
+            None => return String::from(" "),
+            Some(sel) => {
+                for status in &sel.list {
+                    if status.selected {
+                        return status.label.clone()
+                    }
+                }
+            }
+        }
+        String::from(" ")
+    }
+}
+
+impl SortSelect {
 
 }
 

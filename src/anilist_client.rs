@@ -20,24 +20,8 @@ pub struct AuthReply{
 }
 
 impl AuthReply{
-    pub fn expires_in(&self) -> usize {
-        self.expires_in
-    }
     pub fn access_token(&self) -> &str {
         &self.access_token
-    }
-    pub fn refresh_token(&self) -> &str {
-        &self.refresh_token
-    }
-
-    pub fn set_expires_in(&mut self, expires_in: usize) {
-        self.expires_in = expires_in;
-    }
-    pub fn set_access_token(&mut self, access_token: String) {
-        self.access_token = access_token;
-    }
-    pub fn set_refresh_token(&mut self, refresh_token: String) {
-        self.refresh_token = refresh_token;
     }
 }
 
@@ -48,10 +32,6 @@ impl AniListClient {
             is_auth: false,
             access_token: None,
         }
-    }
-
-    pub fn is_auth(&self) -> bool{
-        self.is_auth
     }
 
     pub fn set_auth(&mut self, access_code: Option<String>){
