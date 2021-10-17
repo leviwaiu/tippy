@@ -57,12 +57,13 @@ impl Tippy{
         Terminal::cursor_position(&Position::default());
         if self.quit {
             Terminal::clear_screen();
-            Terminal::cursor_show();
+            // Terminal::cursor_show();
             println!("Exiting...\r");
         }
         else {
             self.scene.show_view(&self.terminal);
         }
+        Terminal::cursor_show();
         Terminal::flush()
     }
 
@@ -115,7 +116,7 @@ impl Tippy{
         self.interface.authentication();
         self.interface.fetch_viewer();
         if let Scene::MainList(main_list) = Rc::<Scene>::get_mut(&mut self.scene).unwrap() {
-            main_list.set_anime_list(self.interface.fetch_anime_list());
+            main_list.set_anime_list(self.interface.fetch_anime_list(main_list.current_sort()));
         }
 
 

@@ -8,6 +8,8 @@ use crate::anilist_interface::AniListInterface;
 use termion::event::Key;
 use crate::scene::settings::Settings;
 
+use strum::IntoEnumIterator;
+
 
 pub struct MainList {
     anime_list:Vec<Entry>,
@@ -15,6 +17,16 @@ pub struct MainList {
     selected: Position,
 
     for_change:Option<Entry>,
+
+    sort_view:bool,
+    current_sort:EntryStatus,
+
+    sort_select:Option<SortSelect>,
+}
+
+struct SortSelect {
+    list: Vec<EntryStatus>,
+    selected: EntryStatus,
 }
 
 impl SceneTrait for MainList {
@@ -22,6 +34,9 @@ impl SceneTrait for MainList {
         Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.print_list(terminal);
         Terminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
+        if self.sort_view {
+            self.show_sorting(terminal);
+        }
     }
 
     fn format_status_row(&self) -> String {
@@ -36,7 +51,7 @@ impl SceneTrait for MainList {
             | Key::PageDown => self.move_cursor(key, terminal),
             Key::Char('+')
             | Key::Char('-') => self.edit_entry(key, settings),
-            Key::Char('s') => (),
+            Key::Char('s') => self.sort_view ^= true,
             _ => (),
         }
         self.scroll(terminal);
@@ -61,6 +76,11 @@ impl MainList {
             selected: Position::default(),
 
             for_change:None,
+
+            sort_view: false,
+            current_sort: EntryStatus::CURRENT,
+
+            sort_select:None,
         }
     }
 
@@ -135,6 +155,23 @@ impl MainList {
         }
     }
 
+    fn show_sorting(&self, terminal: &Terminal){
+        let terminal_height = terminal.size().height as usize;
+        let terminal_width = terminal.size().width as usize;
+        let box_start = (terminal_height / 2) - 5;
+        let box_width = (terminal_width / 2) - 30;
+
+        let mut message_vec = Vec::new();
+        message_vec.push(String::from("Set List Category:"));
+
+        for status in EntryStatus::iter() {
+            message_vec.push(status.to_description());
+        }
+
+        Terminal::print_list_box(message_vec, Position{x:box_width, y:box_start}, (30, 6))
+
+    }
+
     fn move_cursor(&mut self, key:Key, terminal: &Terminal){
         let terminal_height = terminal.size().height as usize;
         let Position {x, mut y} = self.selected;
@@ -203,6 +240,13 @@ impl MainList {
     pub fn set_anime_list(&mut self, list: Vec<Entry>){
         self.anime_list = list;
     }
+
+    pub fn current_sort(&self) -> EntryStatus {
+        self.current_sort.clone()
+    }
+}
+
+impl SortSelect {
 
 }
 

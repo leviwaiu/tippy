@@ -1,14 +1,17 @@
+use strum_macros::EnumIter;
+
 #[derive(Clone)]
 pub struct Entry{
     id: usize,
     title: String,
+    title_length: Option<usize>,
     watched_count: usize,
     total_count: usize,
     status: EntryStatus,
     score: u8,
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, EnumIter)]
 pub enum EntryStatus {
     CURRENT,
     PLANNING,
@@ -55,21 +58,12 @@ impl EntryStatus {
 }
 
 impl Entry{
-    pub fn default() -> Self {
-        Entry{
-            id:10,
-            title: "This is only a test".to_string(),
-            watched_count:10,
-            total_count:10,
-            status: EntryStatus::PLANNING,
-            score:0,
-        }
-    }
 
     pub fn new(id:u64, title: String, watched_count:u64, total_count:u64, entry_type:EntryStatus, score:u64 ) -> Self {
         Self{
             id: id as usize,
             title,
+            title_length: None,
             watched_count: watched_count as usize,
             total_count: total_count as usize,
             status: entry_type,
@@ -77,13 +71,6 @@ impl Entry{
         }
     }
 
-
-
-    fn set_watched(&mut self, count: usize){
-        if count <= self.total_count{
-            self.watched_count = count;
-        }
-    }
 
     pub fn add_watched(&mut self){
         if self.watched_count < self.total_count{
@@ -114,22 +101,9 @@ impl Entry{
         self.score
     }
 
-    pub fn set_id(&mut self, id: usize) {
-        self.id = id;
-    }
-    pub fn set_title(&mut self, title: String) {
-        self.title = title;
-    }
-    pub fn set_watched_count(&mut self, watched_count: usize) {
-        self.watched_count = watched_count;
-    }
-    pub fn set_total_count(&mut self, total_count: usize) {
-        self.total_count = total_count;
-    }
+
     pub fn set_status(&mut self, status: EntryStatus) {
         self.status = status;
     }
-    pub fn set_score(&mut self, score: u8) {
-        self.score = score;
-    }
+
 }

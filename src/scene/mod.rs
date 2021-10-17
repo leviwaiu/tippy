@@ -7,6 +7,7 @@ use crate::anilist_interface::AniListInterface;
 pub mod mainlist;
 pub mod settings;
 mod anime_info;
+mod anime_search;
 
 pub(crate) enum Scene {
     MainList(MainList),

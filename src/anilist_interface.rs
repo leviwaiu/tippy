@@ -158,15 +158,15 @@ impl AniListInterface {
         output_list
     }
 
-    pub fn fetch_anime_list(&mut self) -> Vec<Entry>{
+    pub fn fetch_anime_list(&mut self, statusfilter: EntryStatus) -> Vec<Entry>{
         let mut anime_list = Vec::new();
-        let firstpage = self.fetch_anime_list_page_filtered(1, EntryStatus::CURRENT).unwrap();
+        let firstpage = self.fetch_anime_list_page_filtered(1, statusfilter.clone()).unwrap();
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
         anime_list.extend(AniListInterface::process_anime_entry(list));
 
         let extra_pages = firstpage["data"]["Page"]["pageInfo"]["lastPage"].as_u64().unwrap();
         for x in 2..extra_pages {
-            let nextpage = self.fetch_anime_list_page_filtered(x as u8, EntryStatus::CURRENT).unwrap();
+            let nextpage = self.fetch_anime_list_page_filtered(x as u8, statusfilter.clone()).unwrap();
             let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
             anime_list.extend(AniListInterface::process_anime_entry(list));
         }

@@ -30,6 +30,7 @@ impl Settings {
 impl SceneTrait for SettingsScene {
     fn show_view(&self, terminal: &Terminal) {
         Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
+        self.print_settingline();
     }
 
     fn format_status_row(&self) -> String {
@@ -62,6 +63,10 @@ impl SettingsScene {
 
     pub fn get_settings(&self) -> Settings {
         self.settings.clone()
+    }
+
+    fn print_settingline(&self){
+        Terminal::print_fgcolor("Title Style:", Box::new(color::Blue));
     }
 
 }
