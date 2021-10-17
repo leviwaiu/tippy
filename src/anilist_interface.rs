@@ -92,7 +92,7 @@ impl AniListInterface {
         Ok(res)
     }
 
-    fn fetch_anime_list_page_filtered(&mut self, page:u8, status:EntryStatus) -> serde_json::Result<serde_json::Value> {
+    fn fetch_anime_list_page_filtered(&self, page:u8, status:EntryStatus) -> serde_json::Result<serde_json::Value> {
         let query = "
         query($userId: Int, $page: Int, $perPage: Int, $status: [MediaListStatus]){
             Page(page:$page, perPage: $perPage){
@@ -158,7 +158,7 @@ impl AniListInterface {
         output_list
     }
 
-    pub fn fetch_anime_list(&mut self, statusfilter: EntryStatus) -> Vec<Entry>{
+    pub fn fetch_anime_list(&self, statusfilter: EntryStatus) -> Vec<Entry>{
         let mut anime_list = Vec::new();
         let firstpage = self.fetch_anime_list_page_filtered(1, statusfilter.clone()).unwrap();
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();

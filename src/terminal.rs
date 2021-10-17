@@ -16,6 +16,21 @@ pub struct Position {
     pub y: usize,
 }
 
+#[derive(Clone)]
+pub struct BoxSelection {
+    pub label: String,
+    pub selected: bool,
+}
+
+impl BoxSelection {
+    pub fn default(label:String, selected:bool) -> Self {
+        Self {
+            label,
+            selected,
+        }
+    }
+}
+
 pub struct Terminal {
     size: Size,
     _stdout: Option<RawTerminal<std::io::Stdout>>,
@@ -23,7 +38,6 @@ pub struct Terminal {
 
 
 impl Terminal {
-
     pub fn default() -> Result<Self, std::io::Error> {
         let size = termion::terminal_size()?;
         Ok(Self {
@@ -44,7 +58,7 @@ impl Terminal {
 
     pub fn debug_size_override(&mut self) {
         self.size.height = 20;
-        self.size.width = 80;
+        self.size.width = 160;
     }
 
     pub fn clear_screen() { print!("{}", termion::clear::All); }
@@ -68,8 +82,20 @@ impl Terminal {
                  termion::color::Bg(termion::color::Reset));
     }
 
+    pub fn print_color(message: &str, fg: Box<dyn termion::color::Color>,
+                         bg: Box<dyn termion::color::Color>) {
+        print!("{}{}{}{}{}", termion::color::Bg(bg.as_ref()), termion::color::Fg(fg.as_ref()), message,
+                 termion::color::Fg(termion::color::Reset),
+                 termion::color::Bg(termion::color::Reset));
+    }
+
     pub fn println_bgcolor(message: &str, color: Box<dyn termion::color::Color>) {
         println!("{}{}{}\r", termion::color::Bg(color.as_ref()), message,
+                 termion::color::Bg(termion::color::Reset));
+    }
+
+    pub fn print_bgcolor(message: &str, color: Box<dyn termion::color::Color>) {
+        print!("{}{}{}", termion::color::Bg(color.as_ref()), message,
                  termion::color::Bg(termion::color::Reset));
     }
 
@@ -80,29 +106,30 @@ impl Terminal {
 
     pub fn print_fgcolor(message: &str, color: Box<dyn termion::color::Color>) {
         print!("{}{}{}", termion::color::Fg(color.as_ref()), message,
-                 termion::color::Fg(termion::color::Reset));
+               termion::color::Fg(termion::color::Reset));
     }
 
-    pub fn print_list_box(message: Vec<String>, start: Position, size:(usize, usize)){
+    pub fn print_list_box(message: Vec<BoxSelection>, start: Position, size: (usize, usize)) {
         let mut position = start;
         let prev_position = stdout().cursor_pos().unwrap();
         Terminal::cursor_position(&position);
-        print!("{}{}{}","┌", "─".repeat(size.0),"┐");
-        for x in 0..message.len(){
+        print!("{}{}{}", "┌", "─".repeat(size.0), "┐");
+        for x in 0..message.len() {
             position.y += 1;
             Terminal::cursor_position(&position);
             print!("│");
             if x == 0 {
-                Terminal::print_fgcolor(&*message[x], Box::new(termion::color::Blue));
+                Terminal::print_fgcolor(&*message[x].label, Box::new(termion::color::Blue));
+            } else if message[x].selected {
+                Terminal::print_bgcolor(&*message[x].label, Box::new(termion::color::Blue));
+            } else {
+                print!("{}", &*message[x].label);
             }
-            else {
-                print!("{}", &*message[x]);
-            }
-            print!("{}│", " ".repeat(size.0 - message[x].len()));
+            print!("{}│", " ".repeat(size.0 - message[x].label.len()));
         }
         position.y += 1;
         Terminal::cursor_position(&position);
-        print!("{}{}{}","└", "─".repeat(size.0),"┘");
+        print!("{}{}{}", "└", "─".repeat(size.0), "┘");
         Terminal::cursor_position(&Position { x: prev_position.0 as usize, y: prev_position.1 as usize })
     }
 

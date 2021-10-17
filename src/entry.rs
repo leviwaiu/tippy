@@ -55,6 +55,18 @@ impl EntryStatus {
             _ => None,
         }
     }
+
+    pub fn from_description(str:&str)-> Option<Self> {
+        match str {
+            "Watching" => Some(Self::CURRENT),
+            "Plan to Watch" => Some(Self::PLANNING),
+            "Completed" => Some(Self::COMPLETED),
+            "Dropped" => Some(Self::DROPPED),
+            "Paused" => Some(Self::PAUSED),
+            "Watching (R)" => Some(Self::REPEATING),
+            _ => None,
+        }
+    }
 }
 
 impl Entry{
