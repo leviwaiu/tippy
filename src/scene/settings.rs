@@ -1,7 +1,7 @@
 use crate::scene::SceneTrait;
 use crate::terminal::Terminal;
 use termion::event::Key;
-use crate::anilist_interface::AniListInterface;
+use crate::anilist::anilist_interface::AniListInterface;
 use termion::color;
 
 #[derive(Clone)]

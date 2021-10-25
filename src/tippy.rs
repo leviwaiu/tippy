@@ -1,7 +1,7 @@
 use crate::terminal::{Terminal, Position};
 use termion::event::Key;
 
-use crate::anilist_interface::AniListInterface;
+use crate::anilist::anilist_interface::AniListInterface;
 use crate::scene::settings::SettingsScene;
 use crate::scene::anime_search::AnimeSearch;
 use crate::scene::{SceneTrait, Scene};

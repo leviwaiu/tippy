@@ -2,7 +2,7 @@ use crate::scene::mainlist::MainList;
 use crate::terminal::Terminal;
 use termion::event::Key;
 use crate::scene::settings::{SettingsScene, Settings};
-use crate::anilist_interface::AniListInterface;
+use crate::anilist::anilist_interface::AniListInterface;
 use crate::scene::anime_search::AnimeSearch;
 
 pub mod mainlist;

@@ -4,7 +4,7 @@ use crate::terminal::{Terminal, Position, BoxSelection};
 use unicode_width::UnicodeWidthStr;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::scene::SceneTrait;
-use crate::anilist_interface::AniListInterface;
+use crate::anilist::anilist_interface::AniListInterface;
 use termion::event::Key;
 use crate::scene::settings::Settings;
 

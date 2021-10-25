@@ -2,7 +2,7 @@ use crate::scene::SceneTrait;
 use crate::terminal::{Terminal, Position};
 use termion::event::Key;
 use crate::scene::settings::Settings;
-use crate::anilist_interface::AniListInterface;
+use crate::anilist::anilist_interface::AniListInterface;
 use termion::color;
 use std::io::stdout;
 use termion::cursor::DetectCursorPos;
@@ -89,7 +89,7 @@ impl AnimeSearch {
 
     fn move_cursor(&mut self, key:Key){
         let Position {x, mut y} = self.selected;
-        let list_length = 3 as usize;
+        let list_length = 4 as usize;
 
         match key {
             Key::Up => y = y.saturating_sub(1),
@@ -113,21 +113,33 @@ impl AnimeSearch {
 
         let padlength = width - ( size + self.keyword.len());
         let keyword_display = format!("{}{}", self.keyword, " ".repeat(padlength));
+        //Terminal::println_bgcolor(keyword_display.as_str(), Box::new(termion::color::White));
 
-        Terminal::println_bgcolor(keyword_display.as_str(), Box::new(termion::color::White));
-        Terminal::println_fgcolor("Advanced Options", Box::new(termion::color::Blue));
-        Terminal::println_fgcolor("Search", Box::new(termion::color::Blue));
-        Terminal::println_fgcolor("Reset Search", Box::new(termion::color::Blue));
+        let buttons = [keyword_display.as_str(), "Advanced Options", "Search", "Reset Search"];
+
+        for row_no in 0..buttons.len() {
+            if self.selected.y == row_no {
+                Terminal::println_color(&*buttons[row_no],
+                                        Box::new(termion::color::LightWhite),
+                                        Box::new(termion::color::Blue));
+            }
+            else {
+                Terminal::println_fgcolor(&*buttons[row_no], Box::new(termion::color::Blue));
+            }
+        }
     }
 
     fn enter_key(&mut self){
-        if self.entering {
-            self.keyword = self.enter_string.clone();
-            self.entering = false;
-            self.enter_string = String::from("");
-        }
-        else {
+        match self.selected.y {
+            0 => if self.entering {
+                self.keyword = self.enter_string.clone();
+                self.entering = false;
+                self.enter_string = String::from("");
+            }
+            else {
             self.entering = true;
+            },
+            _ => {},
         }
     }
 }

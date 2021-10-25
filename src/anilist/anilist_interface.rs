@@ -1,4 +1,4 @@
-use crate::anilist_client::AniListClient;
+use crate::anilist::anilist_client::AniListClient;
 use crate::entry::{Entry, EntryStatus};
 
 pub struct AniListInterface {
