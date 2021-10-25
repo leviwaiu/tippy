@@ -30,7 +30,7 @@ impl Settings {
 impl SceneTrait for SettingsScene {
     fn show_view(&self, terminal: &Terminal) {
         Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
-        self.print_settingline();
+        self.print_settinglines();
     }
 
     fn format_status_row(&self) -> String {
@@ -65,8 +65,14 @@ impl SettingsScene {
         self.settings.clone()
     }
 
-    fn print_settingline(&self){
-        Terminal::print_fgcolor("Title Style:", Box::new(color::Blue));
+    fn format_row(&self){
+
+    }
+
+    fn print_settinglines(&self){
+        println!("Title Style\r");
+        println!("Automatic Change of Status\r");
+        println!("Default List Filter at start\r");
     }
 
 }

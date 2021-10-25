@@ -3,15 +3,18 @@ use crate::terminal::Terminal;
 use termion::event::Key;
 use crate::scene::settings::{SettingsScene, Settings};
 use crate::anilist_interface::AniListInterface;
+use crate::scene::anime_search::AnimeSearch;
 
 pub mod mainlist;
 pub mod settings;
-mod anime_info;
-mod anime_search;
+pub mod anime_search;
+pub mod anime_info;
+
 
 pub(crate) enum Scene {
     MainList(MainList),
     Settings(SettingsScene),
+    AnimeSearch(AnimeSearch),
 }
 
 pub trait SceneTrait{
@@ -31,6 +34,7 @@ impl SceneTrait for Scene {
         match self{
             Scene::MainList(main_list) => main_list.show_view(terminal),
             Scene::Settings(settings) => settings.show_view(terminal),
+            Scene::AnimeSearch(anime_search) => anime_search.show_view(terminal),
         }
     }
 
@@ -44,6 +48,7 @@ impl SceneTrait for Scene {
     fn process_key(&mut self, key:Key, terminal: &Terminal, settings:Settings) {
         match self {
             Scene::MainList(main_list) => main_list.process_key(key, terminal, settings),
+            Scene::AnimeSearch(anime_search) => anime_search.process_key(key, terminal, settings),
             _ => (),
         }
     }

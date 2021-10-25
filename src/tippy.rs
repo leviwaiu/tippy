@@ -3,6 +3,7 @@ use termion::event::Key;
 
 use crate::anilist_interface::AniListInterface;
 use crate::scene::settings::SettingsScene;
+use crate::scene::anime_search::AnimeSearch;
 use crate::scene::{SceneTrait, Scene};
 use crate::scene::mainlist::MainList;
 use std::rc::Rc;
@@ -16,6 +17,7 @@ pub struct Tippy {
 
     main_list: Option<Rc<Scene>>,
     settings: Option<Rc<Scene>>,
+    anime_search: Option<Rc<Scene>>,
 }
 
 impl Tippy{
@@ -30,6 +32,7 @@ impl Tippy{
 
             main_list: None,
             settings: Some(Rc::new(Scene::Settings(SettingsScene::default()))),
+            anime_search: Some(Rc::new(Scene::AnimeSearch(AnimeSearch::default()))),
 
         };
         out
@@ -57,13 +60,12 @@ impl Tippy{
         Terminal::cursor_position(&Position::default());
         if self.quit {
             Terminal::clear_screen();
-            // Terminal::cursor_show();
+            Terminal::cursor_show();
             println!("Exiting...\r");
         }
         else {
             self.scene.show_view(&self.terminal);
         }
-        Terminal::cursor_show();
         Terminal::flush()
     }
 
@@ -79,6 +81,7 @@ impl Tippy{
         match &*self.scene {
             Scene::Settings(_) => self.settings = Some(Rc::clone(&self.scene)),
             Scene::MainList(_) => self.main_list = Some(Rc::clone(&self.scene)),
+            Scene::AnimeSearch(_) => self.anime_search = Some(Rc::clone(&self.scene)),
         }
 
         self.scene = Rc::clone(&scene_unwrap);
@@ -86,6 +89,7 @@ impl Tippy{
         match *scene_unwrap {
             Scene::Settings(_) => self.settings = None,
             Scene::MainList(_) => self.main_list = None,
+            Scene::AnimeSearch(_) => self.anime_search = None,
         }
     }
 
@@ -101,6 +105,7 @@ impl Tippy{
                 Key::Char('q') => self.quit = true,
                 Key::F(8) => self.change_scene(self.settings.clone()),
                 Key::F(1) => self.change_scene(self.main_list.clone()),
+                Key::F(2) => self.change_scene(self.anime_search.clone()),
                 _ => Rc::<Scene>::get_mut(&mut self.scene).unwrap().process_key(pressed_key, &self.terminal, settings),
             }
         }

@@ -195,4 +195,39 @@ impl AniListInterface {
         let res: serde_json::Value = serde_json::from_str(&result)?;
         Ok(res)
     }
+
+    pub fn search_anime(&self, keyword:String) -> serde_json::Result<serde_json::Value>{
+        let query = "
+        query($keyword: String){
+            Page(page:$page, perPage: $perPage){
+                pageInfo {
+                    total
+                    currentPage
+                    lastPage
+                    hasNextPage
+                    perPage
+                }
+                Media(type:ANIME, search:$keyword){
+                    id
+                    title {
+                        romaji
+                        native
+                    }
+
+                }
+            }
+        }
+        ";
+        let serde_query = serde_json::json!({"query":query, "variables": {
+            "keyword": keyword,
+        }});
+        let fut_resp =
+            self.client.fetch_auth_content(serde_query);
+        let result = match fut_resp {
+            Ok(res) => res,
+            Err(_) => panic!("Error while fetching authcode"),
+        };
+        let res: serde_json::Value = serde_json::from_str(&result)?;
+        Ok(res)
+    }
 }

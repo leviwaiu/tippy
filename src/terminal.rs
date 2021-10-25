@@ -3,6 +3,7 @@ use termion::raw::{RawTerminal, IntoRawMode};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::cursor::DetectCursorPos;
+use termion::screen::AlternateScreen;
 
 #[derive(Default)]
 pub struct Size {
