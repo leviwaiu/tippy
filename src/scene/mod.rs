@@ -2,7 +2,7 @@ use crate::scene::mainlist::MainList;
 use crate::terminal::Terminal;
 use termion::event::Key;
 use crate::scene::settings::{SettingsScene, Settings};
-use crate::anilist::anilist_interface::AniListInterface;
+use crate::anilist::interface::AniListInterface;
 use crate::scene::anime_search::AnimeSearch;
 
 pub mod mainlist;
@@ -56,6 +56,7 @@ impl SceneTrait for Scene {
     fn connect_interface(&mut self, interface: &AniListInterface) {
         match self {
             Scene::MainList(main_list) => main_list.connect_interface(interface),
+            Scene::AnimeSearch(anime_search) => anime_search.connect_interface(interface),
             _ => (),
         }
     }

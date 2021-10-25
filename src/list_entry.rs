@@ -1,18 +1,18 @@
 use strum_macros::EnumIter;
 
 #[derive(Clone)]
-pub struct Entry{
+pub struct ListEntry {
     id: usize,
     title: String,
     title_length: Option<usize>,
     watched_count: usize,
     total_count: usize,
-    status: EntryStatus,
+    status: ListStatus,
     score: u8,
 }
 
 #[derive(Clone, Eq, PartialEq, EnumIter)]
-pub enum EntryStatus {
+pub enum ListStatus {
     CURRENT,
     PLANNING,
     COMPLETED,
@@ -21,7 +21,7 @@ pub enum EntryStatus {
     REPEATING
 }
 
-impl EntryStatus {
+impl ListStatus {
     pub fn to_description(&self) -> String {
          match self {
              Self::CURRENT => "Watching",
@@ -69,9 +69,9 @@ impl EntryStatus {
     }
 }
 
-impl Entry{
+impl ListEntry {
 
-    pub fn new(id:u64, title: String, watched_count:u64, total_count:u64, entry_type:EntryStatus, score:u64 ) -> Self {
+    pub fn new(id:u64, title: String, watched_count:u64, total_count:u64, entry_type: ListStatus, score:u64 ) -> Self {
         Self{
             id: id as usize,
             title,
@@ -106,7 +106,7 @@ impl Entry{
     pub fn total_count(&self) -> usize {
         self.total_count
     }
-    pub fn status(&self) -> EntryStatus {
+    pub fn status(&self) -> ListStatus {
         self.status.clone()
     }
     pub fn score(&self) -> u8 {
@@ -114,7 +114,7 @@ impl Entry{
     }
 
 
-    pub fn set_status(&mut self, status: EntryStatus) {
+    pub fn set_status(&mut self, status: ListStatus) {
         self.status = status;
     }
 

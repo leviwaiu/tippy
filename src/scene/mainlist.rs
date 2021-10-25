@@ -1,10 +1,10 @@
-use crate::entry::{Entry, EntryStatus};
+use crate::list_entry::{ListEntry, ListStatus};
 use termion::color;
 use crate::terminal::{Terminal, Position, BoxSelection};
 use unicode_width::UnicodeWidthStr;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::scene::SceneTrait;
-use crate::anilist::anilist_interface::AniListInterface;
+use crate::anilist::interface::AniListInterface;
 use termion::event::Key;
 use crate::scene::settings::Settings;
 
@@ -12,13 +12,13 @@ use strum::IntoEnumIterator;
 
 
 pub struct MainList {
-    anime_list:Vec<Entry>,
+    anime_list:Vec<ListEntry>,
     offset: Position,
     selected: Position,
 
-    for_change:Option<Entry>,
+    for_change:Option<ListEntry>,
 
-    current_sort:EntryStatus,
+    current_sort: ListStatus,
     sort_change:bool,
 
     sort_select:Option<SortSelect>,
@@ -30,13 +30,13 @@ struct SortSelect {
 }
 
 impl SortSelect {
-    pub fn default(current_sort:EntryStatus) -> Self {
+    pub fn default(current_sort: ListStatus) -> Self {
         let mut current_sel = 0;
         Self {
             list:{
                 let mut vec = Vec::new();
                 let mut counter = 0;
-                for status in EntryStatus::iter() {
+                for status in ListStatus::iter() {
                     if status == current_sort {
                         vec.push(BoxSelection { label: status.to_description(), selected: true });
                         current_sel = counter;
@@ -114,7 +114,7 @@ impl MainList {
 
             for_change:None,
 
-            current_sort: EntryStatus::CURRENT,
+            current_sort: ListStatus::CURRENT,
             sort_change: false,
 
             sort_select:None,
@@ -146,7 +146,7 @@ impl MainList {
         self.format_row(labels, true, terminal)
     }
 
-    fn format_entry(&self, entry: Entry, terminal: &Terminal) -> String {
+    fn format_entry(&self, entry: ListEntry, terminal: &Terminal) -> String {
         let episode_count = format!("{}/{}",
                                     &entry.watched_count().to_string(),
                                     &entry.total_count().to_string());
@@ -233,7 +233,7 @@ impl MainList {
             for no in 0.. x.list.len() {
                 if no == x.current_sel {
                     if enter {
-                        self.current_sort = EntryStatus::from_description(&*x.list[no].label).unwrap();
+                        self.current_sort = ListStatus::from_description(&*x.list[no].label).unwrap();
                         self.sort_select = None;
                         self.sort_change = true;
                         return;
@@ -281,10 +281,10 @@ impl MainList {
         match key {
             Key::Char('+') => {
                 if self.anime_list[selected_no].watched_count() == 0
-                    && self.anime_list[selected_no].status() == EntryStatus::PLANNING
+                    && self.anime_list[selected_no].status() == ListStatus::PLANNING
                     && settings.auto_change_status()
                 {
-                    self.anime_list[selected_no].set_status(EntryStatus::CURRENT);
+                    self.anime_list[selected_no].set_status(ListStatus::CURRENT);
                 }
                 self.anime_list[selected_no].add_watched()
             },
@@ -310,11 +310,11 @@ impl MainList {
         }
     }
 
-    pub fn set_anime_list(&mut self, list: Vec<Entry>){
+    pub fn set_anime_list(&mut self, list: Vec<ListEntry>){
         self.anime_list = list;
     }
 
-    pub fn current_sort(&self) -> EntryStatus {
+    pub fn current_sort(&self) -> ListStatus {
         self.current_sort.clone()
     }
 

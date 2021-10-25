@@ -2,24 +2,35 @@ use crate::scene::SceneTrait;
 use crate::terminal::{Terminal, Position};
 use termion::event::Key;
 use crate::scene::settings::Settings;
-use crate::anilist::anilist_interface::AniListInterface;
+use crate::anilist::interface::AniListInterface;
 use termion::color;
 use std::io::stdout;
 use termion::cursor::DetectCursorPos;
 
+
+struct SearchResult {
+    id: usize,
+    title: String,
+    media_type: String,
+}
+
 pub struct AnimeSearch {
     keyword: String,
-    new_keyword: bool,
+    search_commence: bool,
     entering: bool,
     enter_string: String,
     position: Position,
     selected: Position,
+
+    search_results:Vec<SearchResult>,
 }
 
 impl SceneTrait for AnimeSearch {
     fn show_view(&self, terminal: &Terminal) {
         Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.show_searchbar(terminal);
+        Terminal::println_fgcolor(&*"─".repeat(terminal.size().width as usize), Box::new(color::Blue));
+        self.show_results();
 
         Terminal::cursor_position(&Position { x: 0, y: terminal.size().height as usize });
         Terminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
@@ -52,8 +63,21 @@ impl SceneTrait for AnimeSearch {
     }
 
     fn connect_interface(&mut self, interface: &AniListInterface) {
-        if self.new_keyword {
-            let connect = interface.search_anime(self.keyword.clone());
+        if self.search_commence {
+            let mut output = Vec::default();
+            let connect = interface.search_anime(self.keyword.clone()).unwrap();
+            //print!("{}", connect.to_string());
+            let res = connect["data"]["Page"]["media"].as_array().unwrap();
+            for value in res{
+                output.push(SearchResult{
+                    id: value["id"].as_u64().unwrap() as usize,
+                    title: String::from(value["title"]["native"].as_str().unwrap()),
+                    media_type: String::from(value["format"].as_str().unwrap()),
+                });
+            }
+            self.search_results = output;
+            self.search_commence = false;
+            self.selected.y = 4;
         }
     }
 }
@@ -63,11 +87,13 @@ impl AnimeSearch {
     pub fn default() -> Self {
         Self {
             keyword: String::from(""),
-            new_keyword: false,
+            search_commence: false,
             entering: false,
             enter_string: String::from(""),
             position: Position::default(),
             selected: Position::default(),
+
+            search_results: Vec::default(),
         }
     }
 
@@ -91,8 +117,16 @@ impl AnimeSearch {
         let Position {x, mut y} = self.selected;
         let list_length = 4 as usize;
 
+        let mut cursor_ceiling = 0;
+        if self.search_results.len() > 0 {
+            cursor_ceiling = 3;
+        }
+
         match key {
-            Key::Up => y = y.saturating_sub(1),
+            Key::Up =>
+                if y > cursor_ceiling {
+                    y = y.saturating_sub(1)
+                },
             Key::Down =>
                 if y < list_length.saturating_sub(1) {
                     y = y.saturating_add(1);
@@ -119,13 +153,30 @@ impl AnimeSearch {
 
         for row_no in 0..buttons.len() {
             if self.selected.y == row_no {
-                Terminal::println_color(&*buttons[row_no],
-                                        Box::new(termion::color::LightWhite),
-                                        Box::new(termion::color::Blue));
+                if row_no == 0 {
+                    Terminal::println_bgcolor(keyword_display.as_str(),
+                                              Box::new(termion::color::White));
+                }
+                else {
+                    Terminal::println_color(&*buttons[row_no],
+                                            Box::new(termion::color::LightWhite),
+                                            Box::new(termion::color::Blue));
+                }
             }
             else {
-                Terminal::println_fgcolor(&*buttons[row_no], Box::new(termion::color::Blue));
+                if row_no == 0 {
+                    print!("{}", buttons[row_no]);
+                }
+                else {
+                    Terminal::println_fgcolor(&*buttons[row_no], Box::new(termion::color::Blue));
+                }
             }
+        }
+    }
+
+    fn show_results(&self){
+        for result in &self.search_results{
+            println!("{}         {}\r", result.title, result.media_type);
         }
     }
 
@@ -139,6 +190,8 @@ impl AnimeSearch {
             else {
             self.entering = true;
             },
+            2 => self.search_commence = true,
+            3 => self.search_results = Vec::new(),
             _ => {},
         }
     }

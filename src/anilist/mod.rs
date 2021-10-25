@@ -1,2 +1,3 @@
-pub mod anilist_client;
-pub mod anilist_interface;
+pub mod client;
+pub mod interface;
+mod queries;
