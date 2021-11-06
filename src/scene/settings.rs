@@ -1,8 +1,8 @@
+use crate::anilist::interface::AniListInterface;
 use crate::scene::SceneTrait;
 use crate::terminal::Terminal;
-use termion::event::Key;
-use crate::anilist::interface::AniListInterface;
 use termion::color;
+use termion::event::Key;
 
 #[derive(Clone)]
 pub struct Settings {
@@ -37,7 +37,7 @@ impl SceneTrait for SettingsScene {
         todo!()
     }
 
-    fn process_key(&mut self, _key:Key, _terminal: &Terminal, _settings: Settings) {
+    fn process_key(&mut self, _key: Key, _terminal: &Terminal, _settings: Settings) {
         todo!()
     }
 
@@ -47,32 +47,28 @@ impl SceneTrait for SettingsScene {
 }
 
 impl SettingsScene {
-
     pub fn default() -> Self {
-        Self{
-            settings:Settings::default(),
+        Self {
+            settings: Settings::default(),
         }
     }
 
-    fn format_title(&self, terminal: &Terminal) -> String{
+    fn format_title(&self, terminal: &Terminal) -> String {
         let width = terminal.size().width as usize;
         let str = "Settings";
 
-        format!("{}{}", str , " ".repeat(width - str.len()))
+        format!("{}{}", str, " ".repeat(width - str.len()))
     }
 
     pub fn get_settings(&self) -> Settings {
         self.settings.clone()
     }
 
-    fn format_row(&self){
+    fn format_row(&self) {}
 
-    }
-
-    fn print_settinglines(&self){
+    fn print_settinglines(&self) {
         println!("Title Style\r");
         println!("Automatic Change of Status\r");
         println!("Default List Filter at start\r");
     }
-
 }

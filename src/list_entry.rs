@@ -18,19 +18,20 @@ pub enum ListStatus {
     COMPLETED,
     DROPPED,
     PAUSED,
-    REPEATING
+    REPEATING,
 }
 
 impl ListStatus {
     pub fn to_description(&self) -> String {
-         match self {
-             Self::CURRENT => "Watching",
-             Self::PLANNING => "Plan to Watch",
-             Self::COMPLETED => "Completed",
-             Self::DROPPED => "Dropped",
-             Self::PAUSED => "Paused",
-             Self::REPEATING => "Watching (R)",
-        }.to_string()
+        match self {
+            Self::CURRENT => "Watching",
+            Self::PLANNING => "Plan to Watch",
+            Self::COMPLETED => "Completed",
+            Self::DROPPED => "Dropped",
+            Self::PAUSED => "Paused",
+            Self::REPEATING => "Watching (R)",
+        }
+        .to_string()
     }
 
     pub fn to_string(&self) -> String {
@@ -41,10 +42,11 @@ impl ListStatus {
             Self::DROPPED => "DROPPED",
             Self::PAUSED => "PAUSED",
             Self::REPEATING => "REPEATING",
-        }.to_string()
+        }
+        .to_string()
     }
 
-    pub fn from_string(str:&str) -> Option<Self> {
+    pub fn from_string(str: &str) -> Option<Self> {
         match str {
             "CURRENT" => Some(Self::CURRENT),
             "PLANNING" => Some(Self::PLANNING),
@@ -56,7 +58,7 @@ impl ListStatus {
         }
     }
 
-    pub fn from_description(str:&str)-> Option<Self> {
+    pub fn from_description(str: &str) -> Option<Self> {
         match str {
             "Watching" => Some(Self::CURRENT),
             "Plan to Watch" => Some(Self::PLANNING),
@@ -70,9 +72,15 @@ impl ListStatus {
 }
 
 impl ListEntry {
-
-    pub fn new(id:u64, title: String, watched_count:u64, total_count:u64, entry_type: ListStatus, score:u64 ) -> Self {
-        Self{
+    pub fn new(
+        id: u64,
+        title: String,
+        watched_count: u64,
+        total_count: u64,
+        entry_type: ListStatus,
+        score: u64,
+    ) -> Self {
+        Self {
             id: id as usize,
             title,
             title_length: None,
@@ -83,14 +91,13 @@ impl ListEntry {
         }
     }
 
-
-    pub fn add_watched(&mut self){
-        if self.watched_count < self.total_count{
-            self.watched_count +=1 ;
+    pub fn add_watched(&mut self) {
+        if self.watched_count < self.total_count {
+            self.watched_count += 1;
         }
     }
 
-    pub fn remove_watched(&mut self){
+    pub fn remove_watched(&mut self) {
         self.watched_count = self.watched_count.saturating_sub(1);
     }
 
@@ -113,9 +120,7 @@ impl ListEntry {
         self.score
     }
 
-
     pub fn set_status(&mut self, status: ListStatus) {
         self.status = status;
     }
-
 }

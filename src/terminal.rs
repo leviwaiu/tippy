@@ -1,8 +1,8 @@
 use std::io::{self, stdout, Write};
-use termion::raw::{RawTerminal, IntoRawMode};
+use termion::cursor::DetectCursorPos;
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::cursor::DetectCursorPos;
+use termion::raw::{IntoRawMode, RawTerminal};
 use termion::screen::AlternateScreen;
 
 #[derive(Default)]
@@ -24,11 +24,8 @@ pub struct BoxSelection {
 }
 
 impl BoxSelection {
-    pub fn default(label:String, selected:bool) -> Self {
-        Self {
-            label,
-            selected,
-        }
+    pub fn default(label: String, selected: bool) -> Self {
+        Self { label, selected }
     }
 }
 
@@ -36,7 +33,6 @@ pub struct Terminal {
     size: Size,
     _stdout: Option<RawTerminal<std::io::Stdout>>,
 }
-
 
 impl Terminal {
     pub fn default() -> Result<Self, std::io::Error> {
@@ -55,16 +51,22 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn size(&self) -> &Size { &self.size }
+    pub fn size(&self) -> &Size {
+        &self.size
+    }
 
     pub fn debug_size_override(&mut self) {
         self.size.height = 20;
         self.size.width = 160;
     }
 
-    pub fn clear_screen() { print!("{}", termion::clear::All); }
+    pub fn clear_screen() {
+        print!("{}", termion::clear::All);
+    }
 
-    pub fn flush() -> Result<(), std::io::Error> { io::stdout().flush() }
+    pub fn flush() -> Result<(), std::io::Error> {
+        io::stdout().flush()
+    }
 
     pub fn cursor_position(position: &Position) {
         let Position { x, y } = position;
@@ -73,41 +75,77 @@ impl Terminal {
         print!("{}", termion::cursor::Goto(x, y));
     }
 
-    pub fn cursor_hide() { print!("{}", termion::cursor::Hide); }
-    pub fn cursor_show() { print!("{}", termion::cursor::Show); }
-
-    pub fn println_color(message: &str, fg: Box<dyn termion::color::Color>,
-                         bg: Box<dyn termion::color::Color>) {
-        println!("{}{}{}{}{}\r", termion::color::Bg(bg.as_ref()), termion::color::Fg(fg.as_ref()), message,
-                 termion::color::Fg(termion::color::Reset),
-                 termion::color::Bg(termion::color::Reset));
+    pub fn cursor_hide() {
+        print!("{}", termion::cursor::Hide);
+    }
+    pub fn cursor_show() {
+        print!("{}", termion::cursor::Show);
     }
 
-    pub fn print_color(message: &str, fg: Box<dyn termion::color::Color>,
-                         bg: Box<dyn termion::color::Color>) {
-        print!("{}{}{}{}{}", termion::color::Bg(bg.as_ref()), termion::color::Fg(fg.as_ref()), message,
-                 termion::color::Fg(termion::color::Reset),
-                 termion::color::Bg(termion::color::Reset));
+    pub fn println_color(
+        message: &str,
+        fg: Box<dyn termion::color::Color>,
+        bg: Box<dyn termion::color::Color>,
+    ) {
+        println!(
+            "{}{}{}{}{}\r",
+            termion::color::Bg(bg.as_ref()),
+            termion::color::Fg(fg.as_ref()),
+            message,
+            termion::color::Fg(termion::color::Reset),
+            termion::color::Bg(termion::color::Reset)
+        );
+    }
+
+    pub fn print_color(
+        message: &str,
+        fg: Box<dyn termion::color::Color>,
+        bg: Box<dyn termion::color::Color>,
+    ) {
+        print!(
+            "{}{}{}{}{}",
+            termion::color::Bg(bg.as_ref()),
+            termion::color::Fg(fg.as_ref()),
+            message,
+            termion::color::Fg(termion::color::Reset),
+            termion::color::Bg(termion::color::Reset)
+        );
     }
 
     pub fn println_bgcolor(message: &str, color: Box<dyn termion::color::Color>) {
-        println!("{}{}{}\r", termion::color::Bg(color.as_ref()), message,
-                 termion::color::Bg(termion::color::Reset));
+        println!(
+            "{}{}{}\r",
+            termion::color::Bg(color.as_ref()),
+            message,
+            termion::color::Bg(termion::color::Reset)
+        );
     }
 
     pub fn print_bgcolor(message: &str, color: Box<dyn termion::color::Color>) {
-        print!("{}{}{}", termion::color::Bg(color.as_ref()), message,
-                 termion::color::Bg(termion::color::Reset));
+        print!(
+            "{}{}{}",
+            termion::color::Bg(color.as_ref()),
+            message,
+            termion::color::Bg(termion::color::Reset)
+        );
     }
 
     pub fn println_fgcolor(message: &str, color: Box<dyn termion::color::Color>) {
-        println!("{}{}{}\r", termion::color::Fg(color.as_ref()), message,
-                 termion::color::Fg(termion::color::Reset));
+        println!(
+            "{}{}{}\r",
+            termion::color::Fg(color.as_ref()),
+            message,
+            termion::color::Fg(termion::color::Reset)
+        );
     }
 
     pub fn print_fgcolor(message: &str, color: Box<dyn termion::color::Color>) {
-        print!("{}{}{}", termion::color::Fg(color.as_ref()), message,
-               termion::color::Fg(termion::color::Reset));
+        print!(
+            "{}{}{}",
+            termion::color::Fg(color.as_ref()),
+            message,
+            termion::color::Fg(termion::color::Reset)
+        );
     }
 
     pub fn print_list_box(message: Vec<BoxSelection>, start: Position, size: (usize, usize)) {
@@ -120,9 +158,11 @@ impl Terminal {
             Terminal::cursor_position(&position);
             print!("│");
             if x == 0 {
-                Terminal::print_fgcolor(&*message[x].label, Box::new(termion::color::Blue));
+                Terminal::print_fgcolor(&*message[x].label,
+                                        Box::new(termion::color::Blue));
             } else if message[x].selected {
-                Terminal::print_bgcolor(&*message[x].label, Box::new(termion::color::Blue));
+                Terminal::print_bgcolor(&*message[x].label,
+                                        Box::new(termion::color::Blue));
             } else {
                 print!("{}", &*message[x].label);
             }
@@ -131,7 +171,10 @@ impl Terminal {
         position.y += 1;
         Terminal::cursor_position(&position);
         print!("{}{}{}", "└", "─".repeat(size.0), "┘");
-        Terminal::cursor_position(&Position { x: prev_position.0 as usize, y: prev_position.1 as usize })
+        Terminal::cursor_position(&Position {
+            x: prev_position.0 as usize,
+            y: prev_position.1 as usize,
+        })
     }
 
     pub fn read_key() -> Result<Key, std::io::Error> {
