@@ -3,6 +3,7 @@ use strum_macros::EnumIter;
 #[derive(Clone)]
 pub struct ListEntry {
     id: usize,
+    media_id: usize,
     title: String,
     title_length: Option<usize>,
     watched_count: usize,
@@ -74,6 +75,7 @@ impl ListStatus {
 impl ListEntry {
     pub fn new(
         id: u64,
+        media_id: u64,
         title: String,
         watched_count: u64,
         total_count: u64,
@@ -82,6 +84,7 @@ impl ListEntry {
     ) -> Self {
         Self {
             id: id as usize,
+            media_id: media_id as usize,
             title,
             title_length: None,
             watched_count: watched_count as usize,
@@ -103,6 +106,9 @@ impl ListEntry {
 
     pub fn id(&self) -> usize {
         self.id
+    }
+    pub fn media_id(&self) -> usize {
+        self.media_id
     }
     pub fn title(&self) -> &str {
         &self.title

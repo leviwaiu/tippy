@@ -24,7 +24,7 @@ pub trait SceneTrait {
 
     fn process_key(&mut self, key: Key, terminal: &Terminal, settings: Settings);
 
-    fn connect_interface(&mut self, interface: &AniListInterface);
+    fn connect_interface(&mut self, interface: &mut AniListInterface);
 }
 
 impl SceneTrait for Scene {
@@ -34,6 +34,7 @@ impl SceneTrait for Scene {
             Scene::MainList(main_list) => main_list.show_view(terminal),
             Scene::Settings(settings) => settings.show_view(terminal),
             Scene::AnimeSearch(anime_search) => anime_search.show_view(terminal),
+            _ => (),
         }
     }
 
@@ -52,7 +53,7 @@ impl SceneTrait for Scene {
         }
     }
 
-    fn connect_interface(&mut self, interface: &AniListInterface) {
+    fn connect_interface(&mut self, interface: &mut AniListInterface) {
         match self {
             Scene::MainList(main_list) => main_list.connect_interface(interface),
             Scene::AnimeSearch(anime_search) => anime_search.connect_interface(interface),

@@ -4,6 +4,8 @@ use crate::list_entry::{ListEntry, ListStatus};
 pub struct AniListInterface {
     client: AniListClient,
     viewer_id: Option<u64>,
+
+    main_list: Vec<ListEntry>,
 }
 
 impl AniListInterface {
@@ -11,6 +13,8 @@ impl AniListInterface {
         Self {
             client: AniListClient::default(),
             viewer_id: None,
+
+            main_list: Vec::new(),
         }
     }
 
@@ -109,6 +113,7 @@ impl AniListInterface {
                 mediaList(userId:$userId, type:ANIME, status_in: $status){
                     id
                     media {
+                        id
                         title {
                             romaji
                             native
@@ -149,6 +154,7 @@ impl AniListInterface {
             };
             let new_entry = ListEntry::new(
                 item["id"].as_u64().unwrap(),
+                item["media"]["id"].as_u64().unwrap(),
                 String::from(title),
                 item["progress"].as_u64().unwrap(),
                 count,
@@ -160,7 +166,7 @@ impl AniListInterface {
         output_list
     }
 
-    pub fn fetch_anime_list(&self, statusfilter: ListStatus) -> Vec<ListEntry> {
+    pub fn fetch_anime_list(&mut self, statusfilter: ListStatus) -> Vec<ListEntry> {
         let mut anime_list = Vec::new();
         let firstpage = self
             .fetch_anime_list_page_filtered(1, statusfilter.clone())
@@ -178,6 +184,7 @@ impl AniListInterface {
             let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
             anime_list.extend(AniListInterface::process_anime_entry(list));
         }
+        self.main_list = anime_list.clone();
         anime_list
     }
 
@@ -241,4 +248,6 @@ impl AniListInterface {
         let res: serde_json::Value = serde_json::from_str(&result)?;
         Ok(res)
     }
+
+    pub fn get_main_list(&self) -> Vec<ListEntry> {self.main_list.clone()}
 }

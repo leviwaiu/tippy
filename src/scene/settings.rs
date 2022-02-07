@@ -41,14 +41,14 @@ impl SceneTrait for SettingsScene {
         todo!()
     }
 
-    fn connect_interface(&mut self, _interface: &AniListInterface) {
+    fn connect_interface(&mut self, _interface: &mut AniListInterface) {
         todo!()
     }
 }
 
 impl SettingsScene {
     pub fn default() -> Self {
-        Self {
+        Self{
             settings: Settings::default(),
         }
     }

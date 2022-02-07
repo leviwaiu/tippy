@@ -51,7 +51,7 @@ impl Tippy {
             }
             Rc::<Scene>::get_mut(&mut self.scene)
                 .unwrap()
-                .connect_interface(&self.interface);
+                .connect_interface(&mut self.interface);
         }
     }
     fn process_screen_tick(&self) -> Result<(), std::io::Error> {

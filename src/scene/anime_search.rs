@@ -12,6 +12,7 @@ struct SearchResult {
     id: usize,
     title: String,
     media_type: String,
+    added: bool,
 }
 
 pub struct AnimeSearch {
@@ -53,7 +54,7 @@ impl SceneTrait for AnimeSearch {
         if self.entering {
             self.enter_string.clone()
         } else {
-            format!("{} {}","Ready to Search", self.offset.y)
+            format!("{} {} {}","Ready to Search", self.offset.y, self.selected.y)
         }
     }
 
@@ -71,18 +72,28 @@ impl SceneTrait for AnimeSearch {
         self.scroll(terminal);
     }
 
-    fn connect_interface(&mut self, interface: &AniListInterface) {
+    fn connect_interface(&mut self, interface: &mut AniListInterface) {
         if self.search_commence {
             let mut output = Vec::default();
             let connect = interface.search_anime(self.keyword.clone()).unwrap();
             //print!("{}", connect.to_string());
             let res = connect["data"]["Page"]["media"].as_array().unwrap();
+            let main_list = interface.get_main_list();
+            let mut id_list : Vec<u64> = Vec::new();
+
+            for entry in main_list {
+                id_list.push(entry.media_id() as u64);
+                print!("[{}],", entry.id());
+            }
+
             for value in res {
                 output.push(SearchResult {
                     id: value["id"].as_u64().unwrap() as usize,
                     title: String::from(value["title"]["native"].as_str().unwrap()),
                     media_type: String::from(value["format"].as_str().unwrap()),
+                    added: id_list.contains(&value["id"].as_u64().unwrap()),
                 });
+                print!("{}//", value["id"]);
             }
             self.search_results = output;
             self.search_commence = false;
@@ -156,8 +167,8 @@ impl AnimeSearch {
         let height = terminal.size().height as usize;
         let mut offset = &mut self.offset;
 
-        if y <= (offset.y + 4) {
-            offset.y = y;
+        if y.saturating_sub(4) <= offset.y {
+            offset.y = y.saturating_sub(4);
         } else if y >= offset.y.saturating_add(height - 3) {
             offset.y = y.saturating_sub(height - 3).saturating_add(1);
         }
@@ -218,11 +229,11 @@ impl AnimeSearch {
             let result = self.search_results.get(number).unwrap();
             if self.selected.y == (number + 4) {
                 Terminal::println_bgcolor(
-                    &*format!("{}         {}\r", result.title, result.media_type),
+                    &*format!("{}         {}   {}\r", result.title, result.media_type, result.added),
                     Box::new(termion::color::Blue))
             }
             else {
-                println!("{}         {}\r", result.title, result.media_type);
+                println!("{}         {}   {}\r", result.title, result.media_type, result.added);
             }
         }
     }
@@ -239,7 +250,10 @@ impl AnimeSearch {
                 }
             }
             2 => self.search_commence = true,
-            3 => self.search_results = Vec::new(),
+            3 => {
+                self.search_results = Vec::new();
+                self.selected.y = 0;
+            },
             _ => {}
         }
     }

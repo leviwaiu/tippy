@@ -68,7 +68,7 @@ impl SceneTrait for MainList {
     }
 
     fn format_status_row(&self) -> String {
-        return format!("{}{}", "Welcome to Tippy!", self.temp_debug_ret_string());
+        return format!("{}{}", "Welcome to Tippy!", self.offset.y);
     }
 
     fn process_key(&mut self, key: Key, terminal: &Terminal, settings: Settings) {
@@ -86,7 +86,7 @@ impl SceneTrait for MainList {
         self.scroll(terminal);
     }
 
-    fn connect_interface(&mut self, interface: &AniListInterface) {
+    fn connect_interface(&mut self, interface: &mut AniListInterface) {
         match self.for_change.clone() {
             Some(item) => {
                 interface.edit_anime_watchcount(item);
@@ -330,6 +330,8 @@ impl MainList {
             offset.y = y.saturating_sub(height - 2).saturating_add(1);
         }
     }
+
+    pub fn get_anime_list(&self) -> Vec<ListEntry> {self.anime_list.clone()}
 
     pub fn set_anime_list(&mut self, list: Vec<ListEntry>) {
         self.anime_list = list;
