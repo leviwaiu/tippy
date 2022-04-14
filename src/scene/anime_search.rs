@@ -89,7 +89,10 @@ impl SceneTrait for AnimeSearch {
             for value in res {
                 output.push(SearchResult {
                     id: value["id"].as_u64().unwrap() as usize,
-                    title: String::from(value["title"]["native"].as_str().unwrap()),
+                    title: String::from(match value["title"]["native"].as_str() {
+                        Some(val) => val,
+                        None => value["title"]["romaji"].as_str().unwrap()
+                    }),
                     media_type: String::from(value["format"].as_str().unwrap()),
                     added: id_list.contains(&value["id"].as_u64().unwrap()),
                 });
@@ -251,6 +254,7 @@ impl AnimeSearch {
             }
             2 => self.search_commence = true,
             3 => {
+                self.keyword = String::from("");
                 self.search_results = Vec::new();
                 self.selected.y = 0;
             },

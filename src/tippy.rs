@@ -54,6 +54,7 @@ impl Tippy {
                 .connect_interface(&mut self.interface);
         }
     }
+
     fn process_screen_tick(&self) -> Result<(), std::io::Error> {
         Terminal::cursor_hide();
         Terminal::clear_screen();
@@ -100,9 +101,9 @@ impl Tippy {
             let settings = settings_scene.get_settings();
             match pressed_key {
                 Key::Char('q') => self.quit = true,
-                Key::F(8) => self.change_scene(self.settings.clone()),
                 Key::F(1) => self.change_scene(self.main_list.clone()),
                 Key::F(2) => self.change_scene(self.anime_search.clone()),
+                Key::F(8) => self.change_scene(self.settings.clone()),
                 _ => Rc::<Scene>::get_mut(&mut self.scene).unwrap().process_key(
                     pressed_key,
                     &self.terminal,
