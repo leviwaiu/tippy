@@ -1,14 +1,15 @@
 use crate::terminal::{Position, OldTerminal};
 use termion::event::Key;
-use tui::Terminal;
-use tui::backend::{Backend, CrosstermBackend};
 
 
 use crate::anilist::interface::AniListInterface;
-use crate::scene::anime_search::AnimeSearch;
-use crate::scene::mainlist::MainList;
-use crate::scene::settings::SettingsScene;
-use crate::scene::{Scene, SceneTrait};
+use crate::scene::{
+    anime_search::AnimeSearch,
+    mainlist::MainList,
+    settings::SettingsScene,
+    Scene,
+    SceneTrait
+};
 use std::{io, rc::Rc};
 
 pub struct Tippy {
@@ -25,7 +26,9 @@ pub struct Tippy {
 
 impl Tippy {
     pub fn default() -> Self {
+
         let out = Self {
+
             terminal: OldTerminal::default().expect("Terminal Initialisation Failed"),
             quit: false,
             interface: AniListInterface::default(),
@@ -124,7 +127,8 @@ impl Tippy {
             .expect("Terminal Initialisation Failed");
 
         self.interface.authentication();
-        self.interface.fetch_viewer();
+        self.interface.fetch_viewer().expect("ERROR: Failed to find Viewer for AniList Interface");
+
         if let Scene::MainList(main_list) = Rc::<Scene>::get_mut(&mut self.scene).unwrap() {
             main_list.set_anime_list(self.interface.fetch_anime_list(main_list.current_sort()));
         }
