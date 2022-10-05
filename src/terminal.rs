@@ -29,12 +29,13 @@ impl BoxSelection {
     }
 }
 
-pub struct Terminal {
+pub struct OldTerminal {
     size: Size,
     _stdout: Option<RawTerminal<std::io::Stdout>>,
+    _alt_screen: Option<AlternateScreen<std::io::Stdout>>,
 }
 
-impl Terminal {
+impl OldTerminal {
     pub fn default() -> Result<Self, std::io::Error> {
         let size = termion::terminal_size()?;
         Ok(Self {
@@ -43,11 +44,13 @@ impl Terminal {
                 height: size.1,
             },
             _stdout: None,
+            _alt_screen: None,
         })
     }
 
     pub fn put_into_raw(&mut self) -> Result<(), std::io::Error> {
         self._stdout = Some(stdout().into_raw_mode()?);
+        self._alt_screen = Some(AlternateScreen::from(stdout()));
         Ok(())
     }
 
@@ -151,27 +154,27 @@ impl Terminal {
     pub fn print_list_box(message: Vec<BoxSelection>, start: Position, size: (usize, usize)) {
         let mut position = start;
         let prev_position = stdout().cursor_pos().unwrap();
-        Terminal::cursor_position(&position);
+        OldTerminal::cursor_position(&position);
         print!("{}{}{}", "┌", "─".repeat(size.0), "┐");
         for x in 0..message.len() {
             position.y += 1;
-            Terminal::cursor_position(&position);
+            OldTerminal::cursor_position(&position);
             print!("│");
             if x == 0 {
-                Terminal::print_fgcolor(&*message[x].label,
-                                        Box::new(termion::color::Blue));
+                OldTerminal::print_fgcolor(&*message[x].label,
+                                           Box::new(termion::color::Blue));
             } else if message[x].selected {
-                Terminal::print_bgcolor(&*message[x].label,
-                                        Box::new(termion::color::Blue));
+                OldTerminal::print_bgcolor(&*message[x].label,
+                                           Box::new(termion::color::Blue));
             } else {
                 print!("{}", &*message[x].label);
             }
             print!("{}│", " ".repeat(size.0 - message[x].label.len()));
         }
         position.y += 1;
-        Terminal::cursor_position(&position);
+        OldTerminal::cursor_position(&position);
         print!("{}{}{}", "└", "─".repeat(size.0), "┘");
-        Terminal::cursor_position(&Position {
+        OldTerminal::cursor_position(&Position {
             x: prev_position.0 as usize,
             y: prev_position.1 as usize,
         })

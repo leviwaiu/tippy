@@ -2,7 +2,7 @@ use std::cmp::min;
 use crate::anilist::interface::AniListInterface;
 use crate::scene::settings::Settings;
 use crate::scene::SceneTrait;
-use crate::terminal::{Position, Terminal};
+use crate::terminal::{Position, OldTerminal};
 use std::io::stdout;
 use termion::color;
 use termion::cursor::DetectCursorPos;
@@ -31,22 +31,22 @@ const LIST_LENGTH :usize = 4;
 const LIST_DISPLAY_LENGTH:usize = 6;
 
 impl SceneTrait for AnimeSearch {
-    fn show_view(&self, terminal: &Terminal) {
-        Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
+    fn show_view(&self, terminal: &OldTerminal) {
+        OldTerminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.show_searchbar(terminal);
-        Terminal::println_fgcolor(
+        OldTerminal::println_fgcolor(
             &*"─".repeat(terminal.size().width as usize),
             Box::new(color::Blue),
         );
         self.show_results(terminal);
 
-        Terminal::cursor_position(&Position {
+        OldTerminal::cursor_position(&Position {
             x: 0,
             y: terminal.size().height as usize,
         });
-        Terminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
+        OldTerminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
         if self.entering {
-            Terminal::cursor_show();
+            OldTerminal::cursor_show();
         }
     }
 
@@ -58,7 +58,7 @@ impl SceneTrait for AnimeSearch {
         }
     }
 
-    fn process_key(&mut self, key: Key, terminal: &Terminal, settings: Settings) {
+    fn process_key(&mut self, key: Key, terminal: &OldTerminal, settings: Settings) {
         match key {
             Key::Up | Key::Down => self.move_cursor(key, terminal),
             Key::Char('\n') => self.enter_key(),
@@ -120,7 +120,7 @@ impl AnimeSearch {
         }
     }
 
-    fn format_title(&self, terminal: &Terminal) -> String {
+    fn format_title(&self, terminal: &OldTerminal) -> String {
         let width = terminal.size().width as usize;
         let str = "Search For Anime";
 
@@ -138,7 +138,7 @@ impl AnimeSearch {
         };
     }
 
-    fn move_cursor(&mut self, key: Key, terminal:&Terminal) {
+    fn move_cursor(&mut self, key: Key, terminal:&OldTerminal) {
         let Position { x, mut y } = self.selected;
         let list_length = 4 + self.search_results.len();
 
@@ -164,7 +164,7 @@ impl AnimeSearch {
         self.selected = Position { x, y }
     }
 
-    fn scroll(&mut self, terminal: &Terminal){
+    fn scroll(&mut self, terminal: &OldTerminal){
         let Position { x: _, y } = self.selected;
         let _width = terminal.size().width as usize;
         let height = terminal.size().height as usize;
@@ -177,16 +177,16 @@ impl AnimeSearch {
         }
     }
 
-    fn show_searchbar(&self, terminal: &Terminal) {
+    fn show_searchbar(&self, terminal: &OldTerminal) {
         let width = terminal.size().width as usize;
         let size = width / 5;
-        Terminal::print_fgcolor("Search Term", Box::new(termion::color::Blue));
+        OldTerminal::print_fgcolor("Search Term", Box::new(termion::color::Blue));
         let curr_y = stdout().cursor_pos().unwrap().1 as usize;
         let desired_position = Position {
             x: size,
             y: curr_y.saturating_sub(1),
         };
-        Terminal::cursor_position(&desired_position);
+        OldTerminal::cursor_position(&desired_position);
 
         let padlength = width - (size + self.keyword.len());
         let keyword_display = format!("{}{}", self.keyword, " ".repeat(padlength));
@@ -202,12 +202,12 @@ impl AnimeSearch {
         for row_no in 0..buttons.len() {
             if self.selected.y == row_no {
                 if row_no == 0 {
-                    Terminal::println_bgcolor(
+                    OldTerminal::println_bgcolor(
                         keyword_display.as_str(),
                         Box::new(termion::color::White),
                     );
                 } else {
-                    Terminal::println_color(
+                    OldTerminal::println_color(
                         &*buttons[row_no],
                         Box::new(termion::color::LightWhite),
                         Box::new(termion::color::Blue),
@@ -217,13 +217,13 @@ impl AnimeSearch {
                 if row_no == 0 {
                     print!("{}", buttons[row_no]);
                 } else {
-                    Terminal::println_fgcolor(&*buttons[row_no], Box::new(termion::color::Blue));
+                    OldTerminal::println_fgcolor(&*buttons[row_no], Box::new(termion::color::Blue));
                 }
             }
         }
     }
 
-    fn show_results(&self, terminal:&Terminal) {
+    fn show_results(&self, terminal:&OldTerminal) {
         let height = terminal.size().height as usize;
         for number in self.offset.y..self.search_results.len() {
             if (number - self.offset.y) > (height - LIST_DISPLAY_LENGTH - 2){
@@ -231,7 +231,7 @@ impl AnimeSearch {
             }
             let result = self.search_results.get(number).unwrap();
             if self.selected.y == (number + 4) {
-                Terminal::println_bgcolor(
+                OldTerminal::println_bgcolor(
                     &*format!("{}         {}   {}\r", result.title, result.media_type, result.added),
                     Box::new(termion::color::Blue))
             }

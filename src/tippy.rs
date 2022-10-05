@@ -1,15 +1,18 @@
-use crate::terminal::{Position, Terminal};
+use crate::terminal::{Position, OldTerminal};
 use termion::event::Key;
+use tui::Terminal;
+use tui::backend::{Backend, CrosstermBackend};
+
 
 use crate::anilist::interface::AniListInterface;
 use crate::scene::anime_search::AnimeSearch;
 use crate::scene::mainlist::MainList;
 use crate::scene::settings::SettingsScene;
 use crate::scene::{Scene, SceneTrait};
-use std::rc::Rc;
+use std::{io, rc::Rc};
 
 pub struct Tippy {
-    terminal: Terminal,
+    terminal: OldTerminal,
     quit: bool,
     interface: AniListInterface,
 
@@ -23,7 +26,7 @@ pub struct Tippy {
 impl Tippy {
     pub fn default() -> Self {
         let out = Self {
-            terminal: Terminal::default().expect("Terminal Initialisation Failed"),
+            terminal: OldTerminal::default().expect("Terminal Initialisation Failed"),
             quit: false,
             interface: AniListInterface::default(),
 
@@ -56,16 +59,16 @@ impl Tippy {
     }
 
     fn process_screen_tick(&self) -> Result<(), std::io::Error> {
-        Terminal::cursor_hide();
-        Terminal::clear_screen();
-        Terminal::cursor_position(&Position::default());
+        OldTerminal::cursor_hide();
+        OldTerminal::clear_screen();
+        OldTerminal::cursor_position(&Position::default());
         if self.quit {
-            Terminal::cursor_show();
+            OldTerminal::cursor_show();
             println!("Exiting...\r");
         } else {
             self.scene.show_view(&self.terminal);
         }
-        Terminal::flush()
+        OldTerminal::flush()
     }
 
     fn change_scene(&mut self, scene: Option<Rc<Scene>>) {
@@ -92,7 +95,7 @@ impl Tippy {
     }
 
     fn process_keypresses(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
+        let pressed_key = OldTerminal::read_key()?;
         let settingref = match self.settings.as_ref() {
             Some(s) => s,
             None => self.scene.as_ref(),
@@ -132,6 +135,6 @@ impl Tippy {
 }
 
 fn die(e: &std::io::Error) {
-    Terminal::clear_screen();
+    OldTerminal::clear_screen();
     panic!("{}", e);
 }

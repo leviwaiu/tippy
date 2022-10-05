@@ -2,7 +2,7 @@ use crate::anilist::interface::AniListInterface;
 use crate::list_entry::{ListEntry, ListStatus};
 use crate::scene::settings::Settings;
 use crate::scene::SceneTrait;
-use crate::terminal::{BoxSelection, Position, Terminal};
+use crate::terminal::{BoxSelection, Position, OldTerminal};
 use termion::color;
 use termion::event::Key;
 use unicode_segmentation::UnicodeSegmentation;
@@ -58,10 +58,10 @@ impl SortSelect {
 }
 
 impl SceneTrait for MainList {
-    fn show_view(&self, terminal: &Terminal) {
-        Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
+    fn show_view(&self, terminal: &OldTerminal) {
+        OldTerminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.print_list(terminal);
-        Terminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
+        OldTerminal::print_fgcolor(&*self.format_status_row(), Box::new(color::Blue));
         if let Some(x) = &self.sort_select {
             self.show_sorting(terminal);
         }
@@ -71,7 +71,7 @@ impl SceneTrait for MainList {
         return format!("{}{}", "Welcome to Tippy!", self.offset.y);
     }
 
-    fn process_key(&mut self, key: Key, terminal: &Terminal, settings: Settings) {
+    fn process_key(&mut self, key: Key, terminal: &OldTerminal, settings: Settings) {
         match key {
             Key::Up | Key::Down | Key::PageUp | Key::PageDown | Key::Char('\n') => {
                 self.move_cursor(key, terminal)
@@ -119,7 +119,7 @@ impl MainList {
         }
     }
 
-    fn print_list(&self, terminal: &Terminal) {
+    fn print_list(&self, terminal: &OldTerminal) {
         let height = terminal.size().height;
 
         for terminal_row in 0..height - 2 {
@@ -127,7 +127,7 @@ impl MainList {
                 let index = self.offset.y.saturating_add(terminal_row as usize);
                 let entry = self.anime_list[index].clone();
                 if terminal_row as usize == self.selected.y.saturating_sub(self.offset.y) {
-                    Terminal::println_color(
+                    OldTerminal::println_color(
                         &*self.format_entry(entry, terminal),
                         Box::new(color::Black),
                         Box::new(color::White),
@@ -141,13 +141,13 @@ impl MainList {
         }
     }
 
-    fn format_title(&self, terminal: &Terminal) -> String {
+    fn format_title(&self, terminal: &OldTerminal) -> String {
         //Langauge support planning for the far future?
         let labels = ["Name", "Score", "Progress", "Type"];
         self.format_row(labels, true, terminal)
     }
 
-    fn format_entry(&self, entry: ListEntry, terminal: &Terminal) -> String {
+    fn format_entry(&self, entry: ListEntry, terminal: &OldTerminal) -> String {
         let episode_count = format!(
             "{}/{}",
             &entry.watched_count().to_string(),
@@ -162,7 +162,7 @@ impl MainList {
         self.format_row(labels, false, terminal)
     }
 
-    fn format_row(&self, labels: [&str; 4], end_padding: bool, terminal: &Terminal) -> String {
+    fn format_row(&self, labels: [&str; 4], end_padding: bool, terminal: &OldTerminal) -> String {
         let width = terminal.size().width as usize;
 
         let mut unicode_widths: Vec<usize> = Vec::new();
@@ -208,7 +208,7 @@ impl MainList {
         }
     }
 
-    fn show_sorting(&self, terminal: &Terminal) {
+    fn show_sorting(&self, terminal: &OldTerminal) {
         let terminal_height = terminal.size().height as usize;
         let terminal_width = terminal.size().width as usize;
         let box_start = (terminal_height / 2) - 5;
@@ -226,7 +226,7 @@ impl MainList {
             message_vec.push(boxmessages[x].clone());
         }
 
-        Terminal::print_list_box(
+        OldTerminal::print_list_box(
             message_vec,
             Position {
                 x: box_width,
@@ -236,7 +236,7 @@ impl MainList {
         )
     }
 
-    fn move_cursor(&mut self, key: Key, terminal: &Terminal) {
+    fn move_cursor(&mut self, key: Key, terminal: &OldTerminal) {
         let terminal_height = terminal.size().height as usize;
         let Position { x, mut y } = self.selected;
         let list_length = self.anime_list.len();
@@ -318,7 +318,7 @@ impl MainList {
         self.for_change = Some(self.anime_list[selected_no].clone());
     }
 
-    fn scroll(&mut self, terminal: &Terminal) {
+    fn scroll(&mut self, terminal: &OldTerminal) {
         let Position { x: _, y } = self.selected;
         let _width = terminal.size().width as usize;
         let height = terminal.size().height as usize;
