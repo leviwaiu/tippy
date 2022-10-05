@@ -1,12 +1,12 @@
 use tippy::Tippy;
 
+mod anilist;
+mod anime_entry;
+mod list_entry;
+mod scene;
+mod secrets;
 mod terminal;
 mod tippy;
-mod entry;
-mod anilist_client;
-mod secrets;
-mod anilist_interface;
-mod scene;
 
 fn main() {
     Tippy::default().run()
