@@ -21,16 +21,18 @@ mod new_scene;
 
 
 fn main() {
-    //Tippy::default().run()
-    let mut term = TerminalInterface::default().unwrap();
+    Tippy::default().run()
 
-    let test_struct = TestStruct::default();
-    let mut widget_function = |f:&mut Frame<CrosstermBackend<std::io::Stdout>>| test_struct.widget(f);
-
-    term.render_widget(widget_function).expect("TODO: panic message");
-
-    thread::sleep(Duration::from_millis(5000));
-
-    term.restore_terminal().expect("TODO: panic message");
+    //
+    // let mut term = TerminalInterface::default().unwrap();
+    //
+    // let test_struct = TestStruct::default();
+    // let mut widget_function = |f:&mut Frame<CrosstermBackend<std::io::Stdout>>| test_struct.widget(f);
+    //
+    // term.render_widget(widget_function).expect("TODO: panic message");
+    //
+    // thread::sleep(Duration::from_millis(5000));
+    //
+    // term.restore_terminal().expect("TODO: panic message");
 
 }

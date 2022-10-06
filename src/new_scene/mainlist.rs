@@ -16,8 +16,10 @@ impl NewSceneTrait for MainList {
 
     fn widget<B:Backend>(&self, f: &mut Frame<B>){
         let size = f.size();
-        let Table = Table::new();
-
+        let mut table_vector = Vec::new();
+        for x in 0 .. self.anime_list.len() {
+            table_vector.push(self.create_string(x));
+        }
     }
 }
 
@@ -29,8 +31,19 @@ impl MainList {
         }
     }
 
-    pub fn create_string(&self) {
-
+    pub fn create_string(&self, index: usize) -> Vec<String> {
+        if index >= self.anime_list.len() {
+            return Vec::new();
+        }
+        let watchcount = format!("{}/{}",
+            self.anime_list[index].watched_count(),
+            self.anime_list[index].total_count());
+        let output = vec!(
+            self.anime_list[index].title().to_string(),
+            watchcount,
+            self.anime_list[index].score().to_string()
+        );
+        output
     }
 
     pub fn get_anime_list(&self) -> Vec<ListEntry> {

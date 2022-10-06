@@ -180,7 +180,7 @@ impl MainList {
                 .into_iter()
                 .map(|s| s.to_string())
                 .collect::<String>();
-            while UnicodeWidthStr::width(label.as_str()) > (width * 3 / 5 - 5) {
+            while UnicodeWidthStr::width(label.as_str()) > ((width * 3 / 5) - 5) {
                 label_list.pop();
                 label = label_list
                     .clone()
