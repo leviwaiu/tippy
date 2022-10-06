@@ -31,7 +31,7 @@ impl BoxSelection {
 
 pub struct TerminalInterface {
     size: Size,
-    _terminal: Terminal<CrosstermBackend<io::Stdout>>,
+    pub _terminal: Terminal<CrosstermBackend<io::Stdout>>,
 }
 
 impl TerminalInterface {
@@ -64,7 +64,7 @@ impl TerminalInterface {
     }
 
     pub fn render_widget<F>(&mut self, widget:F) -> Result<(), std::io::Error> where
-        F: FnOnce(&mut Frame<CrosstermBackend<std::io::Stdout>>)
+        F: FnOnce(&mut Frame<'_, CrosstermBackend<std::io::Stdout>>)
     {
         self._terminal.draw(widget);
         Ok(())
