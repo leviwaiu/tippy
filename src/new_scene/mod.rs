@@ -1,5 +1,5 @@
-pub mod mainlist;
-pub mod test_struct;
+pub mod main_list;
+pub mod anime_search;
 
 
 use tui::{
@@ -13,12 +13,12 @@ pub(crate) enum NewScene {
 }
 
 pub trait NewSceneTrait {
-    fn widget<B: Backend>(&self, f: &mut Frame<B>);
+    fn widget<B: Backend>(&mut self, f: &mut Frame<B>);
     
 }
 
 impl NewSceneTrait for NewScene {
-    fn widget<B:Backend>(&self, f: &mut Frame<B>){
+    fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
 
     }
 

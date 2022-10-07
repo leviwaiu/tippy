@@ -6,20 +6,20 @@ use tui::{
 
 use crate::new_scene::NewSceneTrait;
 
-pub struct TestStruct{
+pub struct AnimeSearch {
     string: String,
 
 }
 
-impl NewSceneTrait for TestStruct {
-    fn widget<B:Backend>(&self, f: &mut Frame<B>){
+impl NewSceneTrait for AnimeSearch {
+    fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
         let size = f.size();
         let block = Block::default().title(self.string.clone()).borders(Borders::ALL);
         f.render_widget(block, size);
     }
 }
 
-impl TestStruct {
+impl AnimeSearch {
     pub fn default()-> Self {
         Self{
             string:"Hello Im A Test string".to_string(),

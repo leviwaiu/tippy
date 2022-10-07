@@ -56,7 +56,7 @@ impl TerminalInterface {
         disable_raw_mode()?;
         execute!(
             self._terminal.backend_mut(),
-            LeaveAlternateScreen
+            LeaveAlternateScreen,
         )?;
         self._terminal.show_cursor()?;
 
