@@ -1,15 +1,21 @@
-use crate::terminal::{Position, Terminal};
+use crate::terminal::{Position, OldTerminal};
 use termion::event::Key;
 
+
 use crate::anilist::interface::AniListInterface;
-use crate::scene::anime_search::AnimeSearch;
-use crate::scene::mainlist::MainList;
-use crate::scene::settings::SettingsScene;
-use crate::scene::{Scene, SceneTrait};
-use std::rc::Rc;
+use crate::scene::{
+    anime_search::AnimeSearch,
+    mainlist::MainList,
+    settings::SettingsScene,
+    Scene,
+    SceneTrait
+};
+use std::{io, rc::Rc};
+use crate::TerminalInterface;
 
 pub struct Tippy {
-    terminal: Terminal,
+    terminal: OldTerminal,
+    new_terminal: TerminalInterface,
     quit: bool,
     interface: AniListInterface,
 
@@ -22,8 +28,12 @@ pub struct Tippy {
 
 impl Tippy {
     pub fn default() -> Self {
+
         let out = Self {
-            terminal: Terminal::default().expect("Terminal Initialisation Failed"),
+
+            terminal: OldTerminal::default().expect("Terminal Initialisation Failed"),
+            new_terminal: TerminalInterface::default().expect("New Terminal Interface Initialisation Failed"),
+
             quit: false,
             interface: AniListInterface::default(),
 
@@ -56,16 +66,16 @@ impl Tippy {
     }
 
     fn process_screen_tick(&self) -> Result<(), std::io::Error> {
-        Terminal::cursor_hide();
-        Terminal::clear_screen();
-        Terminal::cursor_position(&Position::default());
+        OldTerminal::cursor_hide();
+        OldTerminal::clear_screen();
+        OldTerminal::cursor_position(&Position::default());
         if self.quit {
-            Terminal::cursor_show();
+            OldTerminal::cursor_show();
             println!("Exiting...\r");
         } else {
             self.scene.show_view(&self.terminal);
         }
-        Terminal::flush()
+        OldTerminal::flush()
     }
 
     fn change_scene(&mut self, scene: Option<Rc<Scene>>) {
@@ -92,7 +102,7 @@ impl Tippy {
     }
 
     fn process_keypresses(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = Terminal::read_key()?;
+        let pressed_key = OldTerminal::read_key()?;
         let settingref = match self.settings.as_ref() {
             Some(s) => s,
             None => self.scene.as_ref(),
@@ -121,7 +131,8 @@ impl Tippy {
             .expect("Terminal Initialisation Failed");
 
         self.interface.authentication();
-        self.interface.fetch_viewer();
+        self.interface.fetch_viewer().expect("ERROR: Failed to find Viewer for AniList Interface");
+
         if let Scene::MainList(main_list) = Rc::<Scene>::get_mut(&mut self.scene).unwrap() {
             main_list.set_anime_list(self.interface.fetch_anime_list(main_list.current_sort()));
         }
@@ -132,6 +143,6 @@ impl Tippy {
 }
 
 fn die(e: &std::io::Error) {
-    Terminal::clear_screen();
+    OldTerminal::clear_screen();
     panic!("{}", e);
 }

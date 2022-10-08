@@ -1,6 +1,6 @@
 use crate::anilist::interface::AniListInterface;
 use crate::scene::SceneTrait;
-use crate::terminal::Terminal;
+use crate::terminal::OldTerminal;
 use termion::color;
 use termion::event::Key;
 
@@ -28,8 +28,8 @@ impl Settings {
 }
 
 impl SceneTrait for SettingsScene {
-    fn show_view(&self, terminal: &Terminal) {
-        Terminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
+    fn show_view(&self, terminal: &OldTerminal) {
+        OldTerminal::println_bgcolor(&*self.format_title(terminal), Box::new(color::Blue));
         self.print_settinglines();
     }
 
@@ -37,7 +37,7 @@ impl SceneTrait for SettingsScene {
         todo!()
     }
 
-    fn process_key(&mut self, _key: Key, _terminal: &Terminal, _settings: Settings) {
+    fn process_key(&mut self, _key: Key, _terminal: &OldTerminal, _settings: Settings) {
         todo!()
     }
 
@@ -53,7 +53,7 @@ impl SettingsScene {
         }
     }
 
-    fn format_title(&self, terminal: &Terminal) -> String {
+    fn format_title(&self, terminal: &OldTerminal) -> String {
         let width = terminal.size().width as usize;
         let str = "Settings";
 
