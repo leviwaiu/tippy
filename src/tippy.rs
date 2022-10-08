@@ -11,9 +11,11 @@ use crate::scene::{
     SceneTrait
 };
 use std::{io, rc::Rc};
+use crate::TerminalInterface;
 
 pub struct Tippy {
     terminal: OldTerminal,
+    new_terminal: TerminalInterface,
     quit: bool,
     interface: AniListInterface,
 
@@ -30,6 +32,8 @@ impl Tippy {
         let out = Self {
 
             terminal: OldTerminal::default().expect("Terminal Initialisation Failed"),
+            new_terminal: TerminalInterface::default().expect("New Terminal Interface Initialisation Failed"),
+
             quit: false,
             interface: AniListInterface::default(),
 

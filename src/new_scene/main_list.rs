@@ -1,26 +1,37 @@
+
 use crate::list_entry::{ListEntry, ListStatus};
 use crate::new_scene::NewSceneTrait;
 
 use tui::{
     backend::Backend,
     Frame,
+    style::{Color, Modifier, Style},
+    widgets::{Row, Table, TableState},
 };
-use tui::layout::Constraint;
-use tui::style::{Modifier, Style};
-use tui::widgets::{Row, Table, TableState};
+use tui::layout::{Constraint, Direction, Layout};
+
+use crossterm::event::KeyCode;
 
 pub struct MainList {
     anime_list: Vec<ListEntry>,
+    filtered_list: Vec<ListEntry>,
 
     widget_table:Vec<Vec<String>>,
     widget_state: TableState,
+    selected:usize,
     current_sort:ListStatus,
 }
 
 impl NewSceneTrait for MainList {
 
     fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
-        let size = f.size();
+
+        let layout = Layout::default().direction(Direction::Vertical)
+            .constraints([
+                Constraint::Percentage(99),
+                Constraint::Length(1),
+            ]).split(f.size());
+
         let mut table_vector = Vec::new();
         for x in 0 .. self.widget_table.len() {
             table_vector.push(Row::new(self.widget_table[x].clone()));
@@ -28,6 +39,7 @@ impl NewSceneTrait for MainList {
         let table_widget = Table::new(table_vector)
             .header(
                 Row::new(vec!["Name","Progress","Score","Type"])
+                    .style(Style::default().bg(Color::Blue).fg(Color::White))
             )
             .widths(&[Constraint::Percentage(60),
                 Constraint::Percentage(10),
@@ -35,11 +47,19 @@ impl NewSceneTrait for MainList {
                 Constraint::Percentage(10)
             ])
             .highlight_style(
-                Style::default().add_modifier(Modifier::ITALIC)
+                Style::default().bg(Color::Black).fg(Color::White)
             );
 
+        f.render_stateful_widget(table_widget, layout[0], &mut self.widget_state);
+    }
 
-        f.render_stateful_widget(table_widget, size, &mut self.widget_state);
+    fn process_key(&mut self, key: KeyCode) {
+        match key{
+            KeyCode::Up => self.move_prev(),
+            KeyCode::Down => self.move_next(),
+            KeyCode::Char('+')|KeyCode::Char('-') => {},
+            _ => {}
+        }
     }
 }
 
@@ -48,9 +68,11 @@ impl MainList {
         Self {
             anime_list: Vec::new(),
 
+            filtered_list: Vec::new(),
             widget_table: Vec::new(),
             widget_state: TableState::default(),
-            current_sort: ListStatus::CURRENT,
+            selected: 0,
+            current_sort: ListStatus::COMPLETED,
         }
     }
 
@@ -80,7 +102,35 @@ impl MainList {
         output
     }
 
+    fn move_next(&mut self){
+        let i = match self.widget_state.selected() {
+            Some(x) => {
+                if x < self.widget_table.len() - 1 {
+                    x + 1
+                }
+                else {
+                    x
+                }
+            },
+            None => 0,
+        };
+        self.widget_state.select(Some(i));
+    }
 
+    fn move_prev(&mut self){
+        let i = match self.widget_state.selected() {
+            Some(i) => {
+                if i > 0 {
+                    i - 1
+                }
+                else {
+                    i
+                }
+            },
+            None => 0,
+        };
+        self.widget_state.select(Some(i));
+    }
 
     pub fn get_anime_list(&self) -> Vec<ListEntry> {
         self.anime_list.clone()

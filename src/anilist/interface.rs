@@ -174,15 +174,18 @@ impl AniListInterface {
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
         anime_list.extend(AniListInterface::process_anime_entry(list));
 
-        let extra_pages = firstpage["data"]["Page"]["pageInfo"]["lastPage"]
-            .as_u64()
+        let mut has_next_page = firstpage["data"]["Page"]["pageInfo"]["hasNextPage"]
+            .as_bool()
             .unwrap();
-        for x in 2..extra_pages {
+        let mut x = 1;
+        while has_next_page {
+            x += 1;
             let nextpage = self
                 .fetch_anime_list_page_filtered(x as u8, statusfilter.clone())
                 .unwrap();
             let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
             anime_list.extend(AniListInterface::process_anime_entry(list));
+            has_next_page = nextpage["data"]["Page"]["pageInfo"]["hasNextPage"].as_bool().unwrap();
         }
         self.main_list = anime_list.clone();
         anime_list

@@ -1,3 +1,5 @@
+
+use crossterm::event::KeyCode;
 use tui::{
     Frame,
     backend::{Backend, CrosstermBackend},
@@ -16,6 +18,10 @@ impl NewSceneTrait for AnimeSearch {
         let size = f.size();
         let block = Block::default().title(self.string.clone()).borders(Borders::ALL);
         f.render_widget(block, size);
+    }
+
+    fn process_key(&mut self, key: KeyCode) {
+        todo!()
     }
 }
 
