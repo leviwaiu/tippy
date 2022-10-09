@@ -8,24 +8,14 @@ use tui::{
     Frame
 };
 
-pub(crate) enum NewScene {
-    MainList(),
-
+pub(crate) enum Scenes {
+    MainList,
+    AnimeSearch,
+    AnimeList,
 }
 
-pub trait NewSceneTrait {
+pub trait Displayable {
     fn widget<B: Backend>(&mut self, f: &mut Frame<B>);
 
     fn process_key(&mut self, key:KeyCode);
-}
-
-impl NewSceneTrait for NewScene {
-    fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
-
-    }
-
-    fn process_key(&mut self, key:KeyCode) {
-        todo!()
-    }
-
 }

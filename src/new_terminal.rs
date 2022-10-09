@@ -30,7 +30,6 @@ impl BoxSelection {
 }
 
 pub struct TerminalInterface {
-    size: Size,
     pub _terminal: Terminal<CrosstermBackend<io::Stdout>>,
 }
 
@@ -41,13 +40,8 @@ impl TerminalInterface {
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen)?;
 
-        let size = termion::terminal_size()?;
         let backend = CrosstermBackend::new(stdout);
         Ok(Self {
-            size: Size {
-                width: size.0,
-                height: size.1,
-            },
             _terminal: Terminal::new(backend)?,
         })
     }

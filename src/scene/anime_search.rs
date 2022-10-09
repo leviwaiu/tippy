@@ -1,4 +1,3 @@
-use std::cmp::min;
 use crate::anilist::interface::AniListInterface;
 use crate::scene::settings::Settings;
 use crate::scene::SceneTrait;

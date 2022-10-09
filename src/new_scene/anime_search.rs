@@ -6,14 +6,14 @@ use tui::{
     widgets::{Widget, Block, Borders},
 };
 
-use crate::new_scene::NewSceneTrait;
+use crate::new_scene::Displayable;
 
 pub struct AnimeSearch {
     string: String,
 
 }
 
-impl NewSceneTrait for AnimeSearch {
+impl Displayable for AnimeSearch {
     fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
         let size = f.size();
         let block = Block::default().title(self.string.clone()).borders(Borders::ALL);

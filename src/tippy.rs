@@ -1,7 +1,6 @@
 use crate::terminal::{Position, OldTerminal};
 use termion::event::Key;
 
-
 use crate::anilist::interface::AniListInterface;
 use crate::scene::{
     anime_search::AnimeSearch,
@@ -11,7 +10,11 @@ use crate::scene::{
     SceneTrait
 };
 use std::{io, rc::Rc};
-use crate::TerminalInterface;
+use crossterm::event;
+use crossterm::event::{Event, KeyCode};
+use crate::new_scene::main_list::MainList as NewMainList;
+use crate::new_scene::{Displayable, Scenes};
+use crate::new_terminal::TerminalInterface;
 
 pub struct Tippy {
     terminal: OldTerminal,
@@ -20,6 +23,9 @@ pub struct Tippy {
     interface: AniListInterface,
 
     scene: Rc<Scene>,
+
+    curr_scene: Scenes,
+    new_main_list: NewMainList,
 
     main_list: Option<Rc<Scene>>,
     settings: Option<Rc<Scene>>,
@@ -39,6 +45,9 @@ impl Tippy {
 
             scene: Rc::new(Scene::MainList(MainList::default())),
 
+            curr_scene: Scenes::MainList,
+            new_main_list: NewMainList::default(),
+
             main_list: None,
             settings: Some(Rc::new(Scene::Settings(SettingsScene::default()))),
             anime_search: Some(Rc::new(Scene::AnimeSearch(AnimeSearch::default()))),
@@ -49,20 +58,33 @@ impl Tippy {
     pub fn run(&mut self) {
         self.setup();
 
+        // loop {
+        //     if let Err(error) = self.process_screen_tick() {
+        //         die(&error);
+        //     }
+        //     if self.quit {
+        //         break;
+        //     }
+        //     if let Err(error) = self.process_keypresses() {
+        //         die(&error);
+        //     }
+        //     Rc::<Scene>::get_mut(&mut self.scene)
+        //         .unwrap()
+        //         .connect_interface(&mut self.interface);
+        // }
+
         loop {
-            if let Err(error) = self.process_screen_tick() {
+            let main_list = &mut self.new_main_list;
+            self.new_terminal.render_widget(|f| main_list.widget(f)).expect("TODO: panic message");
+            if let Err(error) = self.process_keypresses() {
                 die(&error);
             }
             if self.quit {
                 break;
             }
-            if let Err(error) = self.process_keypresses() {
-                die(&error);
-            }
-            Rc::<Scene>::get_mut(&mut self.scene)
-                .unwrap()
-                .connect_interface(&mut self.interface);
         }
+
+        self.new_terminal.restore_terminal().expect("Terminal Restore Failed");
     }
 
     fn process_screen_tick(&self) -> Result<(), std::io::Error> {
@@ -102,23 +124,33 @@ impl Tippy {
     }
 
     fn process_keypresses(&mut self) -> Result<(), std::io::Error> {
-        let pressed_key = OldTerminal::read_key()?;
-        let settingref = match self.settings.as_ref() {
-            Some(s) => s,
-            None => self.scene.as_ref(),
-        };
-        if let Scene::Settings(settings_scene) = settingref {
-            let settings = settings_scene.get_settings();
-            match pressed_key {
-                Key::Char('q') => self.quit = true,
-                Key::F(1) => self.change_scene(self.main_list.clone()),
-                Key::F(2) => self.change_scene(self.anime_search.clone()),
-                Key::F(8) => self.change_scene(self.settings.clone()),
-                _ => Rc::<Scene>::get_mut(&mut self.scene).unwrap().process_key(
-                    pressed_key,
-                    &self.terminal,
-                    settings,
-                ),
+        // let pressed_key = OldTerminal::read_key()?;
+        // let settingref = match self.settings.as_ref() {
+        //     Some(s) => s,
+        //     None => self.scene.as_ref(),
+        // };
+        // if let Scene::Settings(settings_scene) = settingref {
+        //     let settings = settings_scene.get_settings();
+        //     match pressed_key {
+        //         Key::Char('q') => self.quit = true,
+        //         Key::F(1) => self.change_scene(self.main_list.clone()),
+        //         Key::F(2) => self.change_scene(self.anime_search.clone()),
+        //         Key::F(8) => self.change_scene(self.settings.clone()),
+        //         _ => Rc::<Scene>::get_mut(&mut self.scene).unwrap().process_key(
+        //             pressed_key,
+        //             &self.terminal,
+        //             settings,
+        //         ),
+        //     }
+        // }
+
+        if let Event::Key(key) = event::read().unwrap(){
+            match key.code {
+                KeyCode::Char('q') => self.quit = true,
+                _ => match &self.curr_scene{
+                    MainList => self.new_main_list.process_key(key.code),
+                    _ => {}
+                }
             }
         }
 
@@ -126,19 +158,23 @@ impl Tippy {
     }
 
     fn setup(&mut self) {
-        self.terminal
-            .put_into_raw()
-            .expect("Terminal Initialisation Failed");
 
         self.interface.authentication();
         self.interface.fetch_viewer().expect("ERROR: Failed to find Viewer for AniList Interface");
 
-        if let Scene::MainList(main_list) = Rc::<Scene>::get_mut(&mut self.scene).unwrap() {
-            main_list.set_anime_list(self.interface.fetch_anime_list(main_list.current_sort()));
-        }
+        //Old Termion Based UI
+        // self.terminal
+        //     .put_into_raw()
+        //     .expect("Terminal Initialisation Failed");
+        //
+        // if let Scene::MainList(main_list) = Rc::<Scene>::get_mut(&mut self.scene).unwrap() {
+        //     main_list.set_anime_list(self.interface.fetch_anime_list(main_list.current_sort()));
+        // }
 
-        //REMOVE WHEN NEEDED
-        //self.terminal.debug_size_override();
+        //New TUI (Testing)
+        self.new_main_list.set_anime_list(self.interface.fetch_anime_list(self.new_main_list.get_current_sort()));
+        self.new_main_list.set_widget_strings();
+
     }
 }
 

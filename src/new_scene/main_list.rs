@@ -1,6 +1,6 @@
 
 use crate::list_entry::{ListEntry, ListStatus};
-use crate::new_scene::NewSceneTrait;
+use crate::new_scene::Displayable;
 
 use tui::{
     backend::Backend,
@@ -22,7 +22,7 @@ pub struct MainList {
     current_sort:ListStatus,
 }
 
-impl NewSceneTrait for MainList {
+impl Displayable for MainList {
 
     fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
 
