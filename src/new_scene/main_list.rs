@@ -16,6 +16,8 @@ pub struct MainList {
     anime_list: Vec<ListEntry>,
     filtered_list: Vec<ListEntry>,
 
+    status_bar: String,
+
     widget_table:Vec<Vec<String>>,
     widget_state: TableState,
     selected:usize,
@@ -50,14 +52,19 @@ impl Displayable for MainList {
                 Style::default().bg(Color::Black).fg(Color::White)
             );
 
-        f.render_stateful_widget(table_widget, layout[0], &mut self.widget_state);
+        let status_bar = Table::new([
+            Row::new([self.status_bar.clone()]).style(Style::default().fg(Color::Blue))
+        ]).widths(&[Constraint::Percentage(100)]);
+
+        f.render_stateful_widget(table_widget, layout[0], &mut self.widget_state.clone());
+        f.render_widget(status_bar, layout[1]);
     }
 
     fn process_key(&mut self, key: KeyCode) {
         match key{
             KeyCode::Up => self.move_prev(),
             KeyCode::Down => self.move_next(),
-            KeyCode::Char('+')|KeyCode::Char('-') => {},
+            KeyCode::Char('+')|KeyCode::Char('-') => self.edit_watchcount(),
             _ => {}
         }
     }
@@ -69,6 +76,8 @@ impl MainList {
             anime_list: Vec::new(),
 
             filtered_list: Vec::new(),
+
+            status_bar: String::from("Welcome to Tippy!"),
             widget_table: Vec::new(),
             widget_state: TableState::default(),
             selected: 0,
@@ -76,7 +85,7 @@ impl MainList {
         }
     }
 
-    pub fn set_widget_strings(&mut self){
+    pub fn set_widget_strings(& mut self){
         for x in 0 .. self.anime_list.len() {
             self.widget_table.push(self.create_string(x));
         }
@@ -130,6 +139,10 @@ impl MainList {
             None => 0,
         };
         self.widget_state.select(Some(i));
+    }
+
+    fn edit_watchcount(&mut self){
+
     }
 
     pub fn get_anime_list(&self) -> Vec<ListEntry> {

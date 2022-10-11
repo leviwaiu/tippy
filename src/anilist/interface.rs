@@ -1,4 +1,11 @@
 use crate::anilist::client::AniListClient;
+use crate::anilist::queries::{
+    ANIME_LIST_PAGE,
+    ANIME_LIST_PAGE_FILTERED_STRING,
+    EDIT_WATCHCOUNT_STRING,
+    SEARCH_STRING,
+    VIEWER_QUERY_STRING
+};
 use crate::list_entry::{ListEntry, ListStatus};
 
 pub struct AniListInterface {
@@ -34,12 +41,7 @@ impl AniListInterface {
     }
 
     pub fn fetch_viewer(&mut self) -> serde_json::Result<u64> {
-        let query = "
-        query{
-            Viewer{
-                id
-            }
-        }";
+        let query = VIEWER_QUERY_STRING;
         let serde_query = serde_json::json!({ "query": query });
         let fut_resp = self.client.fetch_auth_content(serde_query);
         let result = match fut_resp {
@@ -56,31 +58,7 @@ impl AniListInterface {
     }
 
     fn fetch_anime_list_page(&mut self, page: u8) -> serde_json::Result<serde_json::Value> {
-        let query = "
-        query($userId: Int, $page: Int, $perPage: Int){
-            Page(page:$page, perPage: $perPage){
-                pageInfo {
-                    total
-                    currentPage
-                    lastPage
-                    hasNextPage
-                    perPage
-                }
-                mediaList(userId:$userId, type:ANIME){
-                    id
-                    media {
-                        title {
-                            romaji
-                            native
-                        }
-                        episodes
-                    }
-                    score
-                    progress
-                    status
-                }
-            }
-        }";
+        let query = ANIME_LIST_PAGE;
         let serde_query = serde_json::json!({"query":query, "variables": {
             "userId": self.viewer_id.as_ref().unwrap(),
             "page": page,
@@ -100,32 +78,7 @@ impl AniListInterface {
         page: u8,
         status: ListStatus,
     ) -> serde_json::Result<serde_json::Value> {
-        let query = "
-        query($userId: Int, $page: Int, $perPage: Int, $status: [MediaListStatus]){
-            Page(page:$page, perPage: $perPage){
-                pageInfo {
-                    total
-                    currentPage
-                    lastPage
-                    hasNextPage
-                    perPage
-                }
-                mediaList(userId:$userId, type:ANIME, status_in: $status){
-                    id
-                    media {
-                        id
-                        title {
-                            romaji
-                            native
-                        }
-                        episodes
-                    }
-                    score
-                    progress
-                    status
-                }
-            }
-        }";
+        let query = ANIME_LIST_PAGE_FILTERED_STRING;
         let serde_query = serde_json::json!({"query":query, "variables": {
             "userId": self.viewer_id.as_ref().unwrap(),
             "page": page,
@@ -195,14 +148,7 @@ impl AniListInterface {
         &self,
         edited_entry: ListEntry,
     ) -> serde_json::Result<serde_json::Value> {
-        let query = "
-        mutation($id: Int, $progress: Int){
-            SaveMediaListEntry(id: $id, progress:$progress) {
-                id
-                progress
-            }
-        }
-        ";
+        let query = EDIT_WATCHCOUNT_STRING;
         let serde_query = serde_json::json!({"query":query, "variables": {
             "id": edited_entry.id(),
             "progress": edited_entry.watched_count(),
@@ -217,27 +163,7 @@ impl AniListInterface {
     }
 
     pub fn search_anime(&self, keyword: String) -> serde_json::Result<serde_json::Value> {
-        let query = "
-        query($keyword: String, $page: Int, $perPage: Int){
-            Page(page:$page, perPage: $perPage){
-                pageInfo {
-                    total
-                    currentPage
-                    lastPage
-                    hasNextPage
-                    perPage
-                }
-                media(type:ANIME, search:$keyword){
-                    id
-                    title {
-                        romaji
-                        native
-                    }
-                    format
-                }
-            }
-        }
-        ";
+        let query = SEARCH_STRING;
         let serde_query = serde_json::json!({"query":query, "variables": {
             "keyword": keyword,
             "page": 1,

@@ -19,3 +19,8 @@ pub trait Displayable {
 
     fn process_key(&mut self, key:KeyCode);
 }
+
+pub trait Connection {
+
+    fn connect_interface();
+}

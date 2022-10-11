@@ -157,7 +157,7 @@ impl Tippy {
         Ok(())
     }
 
-    fn setup(&mut self) {
+    fn setup(& mut self) {
 
         self.interface.authentication();
         self.interface.fetch_viewer().expect("ERROR: Failed to find Viewer for AniList Interface");
