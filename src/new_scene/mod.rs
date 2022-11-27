@@ -11,7 +11,6 @@ use tui::{
 pub(crate) enum Scenes {
     MainList,
     AnimeSearch,
-    AnimeList,
 }
 
 pub trait Displayable {

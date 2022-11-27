@@ -1,4 +1,3 @@
-
 use crate::list_entry::{ListEntry, ListStatus};
 use crate::new_scene::Displayable;
 
@@ -18,16 +17,13 @@ pub struct MainList {
 
     status_bar: String,
 
-    widget_table:Vec<Vec<String>>,
+    widget_table: Vec<Vec<String>>,
     widget_state: TableState,
-    selected:usize,
-    current_sort:ListStatus,
+    current_sort: ListStatus,
 }
 
 impl Displayable for MainList {
-
-    fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
-
+    fn widget<B: Backend>(&mut self, f: &mut Frame<B>) {
         let layout = Layout::default().direction(Direction::Vertical)
             .constraints([
                 Constraint::Percentage(99),
@@ -35,12 +31,12 @@ impl Displayable for MainList {
             ]).split(f.size());
 
         let mut table_vector = Vec::new();
-        for x in 0 .. self.widget_table.len() {
+        for x in 0..self.widget_table.len() {
             table_vector.push(Row::new(self.widget_table[x].clone()));
         }
         let table_widget = Table::new(table_vector)
             .header(
-                Row::new(vec!["Name","Progress","Score","Type"])
+                Row::new(vec!["Name", "Progress", "Score", "Type"])
                     .style(Style::default().bg(Color::Blue).fg(Color::White))
             )
             .widths(&[Constraint::Percentage(60),
@@ -61,10 +57,10 @@ impl Displayable for MainList {
     }
 
     fn process_key(&mut self, key: KeyCode) {
-        match key{
+        match key {
             KeyCode::Up => self.move_prev(),
             KeyCode::Down => self.move_next(),
-            KeyCode::Char('+')|KeyCode::Char('-') => self.edit_watchcount(),
+            KeyCode::Char('+') | KeyCode::Char('-') => self.edit_watchcount(),
             _ => {}
         }
     }
@@ -80,13 +76,12 @@ impl MainList {
             status_bar: String::from("Welcome to Tippy!"),
             widget_table: Vec::new(),
             widget_state: TableState::default(),
-            selected: 0,
             current_sort: ListStatus::COMPLETED,
         }
     }
 
-    pub fn set_widget_strings(& mut self){
-        for x in 0 .. self.anime_list.len() {
+    pub fn set_widget_strings(&mut self) {
+        for x in 0..self.anime_list.len() {
             self.widget_table.push(self.create_string(x));
         }
     }
@@ -99,8 +94,8 @@ impl MainList {
                         "".to_string()];
         }
         let watchcount = format!("{}/{}",
-            self.anime_list[index].watched_count(),
-            self.anime_list[index].total_count());
+                                 self.anime_list[index].watched_count(),
+                                 self.anime_list[index].total_count());
         let output = vec!(
             self.anime_list[index].title().to_string(),
             watchcount,
@@ -111,39 +106,35 @@ impl MainList {
         output
     }
 
-    fn move_next(&mut self){
+    fn move_next(&mut self) {
         let i = match self.widget_state.selected() {
             Some(x) => {
                 if x < self.widget_table.len() - 1 {
                     x + 1
-                }
-                else {
+                } else {
                     x
                 }
-            },
+            }
             None => 0,
         };
         self.widget_state.select(Some(i));
     }
 
-    fn move_prev(&mut self){
+    fn move_prev(&mut self) {
         let i = match self.widget_state.selected() {
             Some(i) => {
                 if i > 0 {
                     i - 1
-                }
-                else {
+                } else {
                     i
                 }
-            },
+            }
             None => 0,
         };
         self.widget_state.select(Some(i));
     }
 
-    fn edit_watchcount(&mut self){
-
-    }
+    fn edit_watchcount(&mut self) {}
 
     pub fn get_anime_list(&self) -> Vec<ListEntry> {
         self.anime_list.clone()
