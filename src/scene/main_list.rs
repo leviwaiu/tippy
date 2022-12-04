@@ -1,15 +1,18 @@
+use std::io::Stdout;
 use crate::list_entry::{ListEntry, ListStatus};
-use crate::new_scene::Displayable;
+use crate::scene::Displayable;
 
 use tui::{
     backend::Backend,
     Frame,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     widgets::{Row, Table, TableState},
 };
 use tui::layout::{Constraint, Direction, Layout};
 
 use crossterm::event::KeyCode;
+use tui::backend::CrosstermBackend;
+use crate::anilist::interface::AniListInterface;
 
 pub struct MainList {
     anime_list: Vec<ListEntry>,
@@ -20,10 +23,12 @@ pub struct MainList {
     widget_table: Vec<Vec<String>>,
     widget_state: TableState,
     current_sort: ListStatus,
+
+    _change: Option<ListEntry>,
 }
 
 impl Displayable for MainList {
-    fn widget<B: Backend>(&mut self, f: &mut Frame<B>) {
+    fn widget(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>) {
         let layout = Layout::default().direction(Direction::Vertical)
             .constraints([
                 Constraint::Percentage(99),
@@ -52,6 +57,7 @@ impl Displayable for MainList {
             Row::new([self.status_bar.clone()]).style(Style::default().fg(Color::Blue))
         ]).widths(&[Constraint::Percentage(100)]);
 
+        self.set_widget_strings();
         f.render_stateful_widget(table_widget, layout[0], &mut self.widget_state.clone());
         f.render_widget(status_bar, layout[1]);
     }
@@ -60,11 +66,23 @@ impl Displayable for MainList {
         match key {
             KeyCode::Up => self.move_prev(),
             KeyCode::Down => self.move_next(),
-            KeyCode::Char('+') | KeyCode::Char('-') => self.edit_watchcount(),
+            KeyCode::Char('+') | KeyCode::Char('-') => self.edit_watchcount(key),
             _ => {}
         }
     }
+
+    fn connect_interface(&mut self, interface: &AniListInterface) {
+        match &self._change {
+            Some(item) => {
+                interface.edit_anime_watchcount(item.clone()).expect("Error: CHANGE_EDIT");
+                self._change = None;
+            }
+            None => {},
+        }
+    }
+
 }
+
 
 impl MainList {
     pub fn default() -> Self {
@@ -76,11 +94,14 @@ impl MainList {
             status_bar: String::from("Welcome to Tippy!"),
             widget_table: Vec::new(),
             widget_state: TableState::default(),
-            current_sort: ListStatus::COMPLETED,
+            current_sort: ListStatus::CURRENT,
+
+            _change:None,
         }
     }
 
     pub fn set_widget_strings(&mut self) {
+        self.widget_table = Vec::new();
         for x in 0..self.anime_list.len() {
             self.widget_table.push(self.create_string(x));
         }
@@ -134,7 +155,23 @@ impl MainList {
         self.widget_state.select(Some(i));
     }
 
-    fn edit_watchcount(&mut self) {}
+    fn edit_watchcount(&mut self, key: KeyCode) {
+        let i = self.widget_state.selected().expect("Error: WATCH_NONE");
+        let current = &mut self.anime_list[i];
+        match key {
+            KeyCode::Char('+') => {
+                current.add_watched();
+            }
+            KeyCode::Char('-') => {
+                current.remove_watched();
+            }
+            _ => {}
+        }
+
+        self._change = Some(self.anime_list[i].clone());
+        self.set_widget_strings();
+
+    }
 
     pub fn get_anime_list(&self) -> Vec<ListEntry> {
         self.anime_list.clone()

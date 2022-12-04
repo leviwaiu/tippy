@@ -1,15 +1,16 @@
-
+use std::io::Stdout;
 use crossterm::event::KeyCode;
 use tui::{
     Frame,
-    backend::{Backend, CrosstermBackend},
-    widgets::{Widget, Block, Borders},
+    backend::Backend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style},
+    widgets::{Row, Table, TableState},
 };
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::widgets::{Row, Table, TableState};
+use tui::backend::CrosstermBackend;
+use crate::anilist::interface::AniListInterface;
 
-use crate::new_scene::Displayable;
+use crate::scene::Displayable;
 
 pub struct AnimeSearch {
     keyword: String,
@@ -18,20 +19,26 @@ pub struct AnimeSearch {
 }
 
 impl Displayable for AnimeSearch {
-    fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
+    fn widget(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>){
 
         let layout = Layout::default().direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(6),
-                Constraint::Percentage(100),
+                Constraint::Percentage(99),
+                Constraint::Length(1),
             ]).split(f.size());
 
         let search_field = Table::new([
             Row::new(["Search String:", self.keyword.as_str()]),
+            Row::new(["Advanced Search:", ""]),
             Row::new(["",""]),
             Row::new(["Search", ""]),
             Row::new(["Reset", ""])
         ]).style(Style::default().fg(Color::Blue)).widths(&[Constraint::Percentage(100)]);
+
+        let status_bar = Table::new([
+            Row::new(["Test Thing Only here"]).style(Style::default().fg(Color::Blue))
+        ]).widths(&[Constraint::Percentage(100)]);
 
         f.render_widget(search_field, layout[0]);
     }
@@ -41,6 +48,10 @@ impl Displayable for AnimeSearch {
             KeyCode::Enter => {},
             _ => {},
         }
+    }
+
+    fn connect_interface(&mut self, interface: &AniListInterface) {
+        todo!()
     }
 }
 

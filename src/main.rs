@@ -5,8 +5,8 @@ mod anime_entry;
 mod list_entry;
 mod secrets;
 mod tippy;
-mod new_terminal;
-mod new_scene;
+mod terminal;
+mod scene;
 
 
 fn main() {

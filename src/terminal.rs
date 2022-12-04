@@ -1,5 +1,4 @@
-use std::io::{self, stdout, Write};
-use tui::{backend::{Backend, CrosstermBackend}, Frame, Terminal};
+use tui::{backend::CrosstermBackend, Frame, Terminal};
 use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -30,14 +29,14 @@ impl BoxSelection {
 }
 
 pub struct TerminalInterface {
-    pub _terminal: Terminal<CrosstermBackend<io::Stdout>>,
+    pub _terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
 }
 
 impl TerminalInterface {
     pub fn default() -> Result<Self, std::io::Error> {
 
         enable_raw_mode()?;
-        let mut stdout = io::stdout();
+        let mut stdout = std::io::stdout();
         execute!(stdout, EnterAlternateScreen)?;
 
         let backend = CrosstermBackend::new(stdout);

@@ -2,11 +2,14 @@ pub mod main_list;
 pub mod anime_search;
 
 
+use std::io::Stdout;
 use crossterm::event::KeyCode;
 use tui::{
     backend::Backend,
     Frame
 };
+use tui::backend::CrosstermBackend;
+use crate::anilist::interface::AniListInterface;
 
 pub(crate) enum Scenes {
     MainList,
@@ -14,12 +17,10 @@ pub(crate) enum Scenes {
 }
 
 pub trait Displayable {
-    fn widget<B: Backend>(&mut self, f: &mut Frame<B>);
+    fn widget(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>);
 
     fn process_key(&mut self, key:KeyCode);
+
+    fn connect_interface(&mut self, interface:&AniListInterface);
 }
 
-pub trait Connection {
-
-    fn connect_interface();
-}
