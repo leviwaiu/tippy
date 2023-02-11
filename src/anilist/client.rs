@@ -11,7 +11,7 @@ pub struct AniListClient {
     access_token: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct AuthReply {
     expires_in: usize,
     access_token: String,

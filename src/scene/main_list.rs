@@ -1,31 +1,34 @@
-
+use std::io::Stdout;
 use crate::list_entry::{ListEntry, ListStatus};
-use crate::new_scene::NewSceneTrait;
+use crate::scene::Displayable;
 
 use tui::{
     backend::Backend,
     Frame,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     widgets::{Row, Table, TableState},
 };
 use tui::layout::{Constraint, Direction, Layout};
 
 use crossterm::event::KeyCode;
+use tui::backend::CrosstermBackend;
+use crate::anilist::interface::AniListInterface;
 
 pub struct MainList {
     anime_list: Vec<ListEntry>,
     filtered_list: Vec<ListEntry>,
 
-    widget_table:Vec<Vec<String>>,
+    status_bar: String,
+
+    widget_table: Vec<Vec<String>>,
     widget_state: TableState,
-    selected:usize,
-    current_sort:ListStatus,
+    current_sort: ListStatus,
+
+    _change: Option<ListEntry>,
 }
 
-impl NewSceneTrait for MainList {
-
-    fn widget<B:Backend>(&mut self, f: &mut Frame<B>){
-
+impl Displayable for MainList {
+    fn widget(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>) {
         let layout = Layout::default().direction(Direction::Vertical)
             .constraints([
                 Constraint::Percentage(99),
@@ -33,12 +36,15 @@ impl NewSceneTrait for MainList {
             ]).split(f.size());
 
         let mut table_vector = Vec::new();
-        for x in 0 .. self.widget_table.len() {
+
+        //Change Up this part
+
+        for x in 0..self.widget_table.len() {
             table_vector.push(Row::new(self.widget_table[x].clone()));
         }
         let table_widget = Table::new(table_vector)
             .header(
-                Row::new(vec!["Name","Progress","Score","Type"])
+                Row::new(vec!["Name", "Progress", "Score", "Type"])
                     .style(Style::default().bg(Color::Blue).fg(Color::White))
             )
             .widths(&[Constraint::Percentage(60),
@@ -50,18 +56,36 @@ impl NewSceneTrait for MainList {
                 Style::default().bg(Color::Black).fg(Color::White)
             );
 
-        f.render_stateful_widget(table_widget, layout[0], &mut self.widget_state);
+        let status_bar = Table::new([
+            Row::new([self.status_bar.clone()]).style(Style::default().fg(Color::Blue))
+        ]).widths(&[Constraint::Percentage(100)]);
+
+        self.set_widget_strings();
+        f.render_stateful_widget(table_widget, layout[0], &mut self.widget_state.clone());
+        f.render_widget(status_bar, layout[1]);
     }
 
     fn process_key(&mut self, key: KeyCode) {
-        match key{
+        match key {
             KeyCode::Up => self.move_prev(),
             KeyCode::Down => self.move_next(),
-            KeyCode::Char('+')|KeyCode::Char('-') => {},
+            KeyCode::Char('+') | KeyCode::Char('-') => self.edit_watchcount(key),
             _ => {}
         }
     }
+
+    fn connect_interface(&mut self, interface: &AniListInterface) {
+        match &self._change {
+            Some(item) => {
+                interface.edit_anime_watchcount(item.clone()).expect("Error: CHANGE_EDIT");
+                self._change = None;
+            }
+            None => {},
+        }
+    }
+
 }
+
 
 impl MainList {
     pub fn default() -> Self {
@@ -69,15 +93,19 @@ impl MainList {
             anime_list: Vec::new(),
 
             filtered_list: Vec::new(),
+
+            status_bar: String::from("Welcome to Tippy!"),
             widget_table: Vec::new(),
             widget_state: TableState::default(),
-            selected: 0,
-            current_sort: ListStatus::COMPLETED,
+            current_sort: ListStatus::CURRENT,
+
+            _change:None,
         }
     }
 
-    pub fn set_widget_strings(&mut self){
-        for x in 0 .. self.anime_list.len() {
+    pub fn set_widget_strings(&mut self) {
+        self.widget_table = Vec::new();
+        for x in 0..self.anime_list.len() {
             self.widget_table.push(self.create_string(x));
         }
     }
@@ -90,8 +118,8 @@ impl MainList {
                         "".to_string()];
         }
         let watchcount = format!("{}/{}",
-            self.anime_list[index].watched_count(),
-            self.anime_list[index].total_count());
+                                 self.anime_list[index].watched_count(),
+                                 self.anime_list[index].total_count());
         let output = vec!(
             self.anime_list[index].title().to_string(),
             watchcount,
@@ -102,34 +130,50 @@ impl MainList {
         output
     }
 
-    fn move_next(&mut self){
+    fn move_next(&mut self) {
         let i = match self.widget_state.selected() {
             Some(x) => {
                 if x < self.widget_table.len() - 1 {
                     x + 1
-                }
-                else {
+                } else {
                     x
                 }
-            },
+            }
             None => 0,
         };
         self.widget_state.select(Some(i));
     }
 
-    fn move_prev(&mut self){
+    fn move_prev(&mut self) {
         let i = match self.widget_state.selected() {
             Some(i) => {
                 if i > 0 {
                     i - 1
-                }
-                else {
+                } else {
                     i
                 }
-            },
+            }
             None => 0,
         };
         self.widget_state.select(Some(i));
+    }
+
+    fn edit_watchcount(&mut self, key: KeyCode) {
+        let i = self.widget_state.selected().expect("Error: WATCH_NONE");
+        let current = &mut self.anime_list[i];
+        match key {
+            KeyCode::Char('+') => {
+                current.add_watched();
+            }
+            KeyCode::Char('-') => {
+                current.remove_watched();
+            }
+            _ => {}
+        }
+
+        self._change = Some(self.anime_list[i].clone());
+        self.set_widget_strings();
+
     }
 
     pub fn get_anime_list(&self) -> Vec<ListEntry> {
