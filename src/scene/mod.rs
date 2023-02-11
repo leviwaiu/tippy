@@ -1,5 +1,7 @@
 pub mod main_list;
 pub mod anime_search;
+mod anime_details;
+mod settings;
 
 
 use std::io::Stdout;
@@ -22,5 +24,11 @@ pub trait Displayable {
     fn process_key(&mut self, key:KeyCode);
 
     fn connect_interface(&mut self, interface:&AniListInterface);
+}
+
+trait Scrollable{
+    fn move_next();
+
+    fn move_prev();
 }
 

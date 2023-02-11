@@ -8,14 +8,24 @@ use tui::{
     widgets::{Row, Table, TableState},
 };
 use tui::backend::CrosstermBackend;
+use tui::widgets::List;
 use crate::anilist::interface::AniListInterface;
+use crate::list_entry::ListStatus;
 
 use crate::scene::Displayable;
+
+struct SearchEntry {
+    name: String,
+    id: String,
+    added: ListStatus
+}
 
 pub struct AnimeSearch {
     keyword: String,
     widget_state: TableState,
-
+    result_display: Vec<SearchEntry>,
+    entering: bool,
+    search_ready: bool,
 }
 
 impl Displayable for AnimeSearch {
@@ -25,7 +35,7 @@ impl Displayable for AnimeSearch {
             .constraints([
                 Constraint::Length(6),
                 Constraint::Percentage(99),
-                Constraint::Length(1),
+                Constraint::Min(1),
             ]).split(f.size());
 
         let search_field = Table::new([
@@ -45,13 +55,15 @@ impl Displayable for AnimeSearch {
 
     fn process_key(&mut self, key: KeyCode) {
         match key {
-            KeyCode::Enter => {},
+            KeyCode::Enter => self.press_enter(),
             _ => {},
         }
     }
 
     fn connect_interface(&mut self, interface: &AniListInterface) {
-        todo!()
+        if self.search_ready {
+            let result = interface.search_anime(self.keyword.clone()).expect("TODO: Something went wrong here");
+        }
     }
 }
 
@@ -60,7 +72,28 @@ impl AnimeSearch {
         Self{
             keyword:String::new(),
             widget_state: TableState::default(),
+            result_display: Vec::new(),
+            entering: false,
+            search_ready: false,
         }
+    }
+
+    fn press_enter(&mut self) {
+        match self.widget_state.selected() {
+            Some(0) => self.entering = !self.entering,
+            Some(1) => {}, // Advance Search,
+            Some(2) => {}, //
+            Some(3) => self.search_ready = !self.search_ready, //Search,
+            Some(4) => self.reset(), //Reset,
+            _ => {} // General List Selection
+        }
+    }
+
+    fn reset(&mut self) {
+        self.keyword = String::new();
+        self.widget_state.select(Some(0));
+        self.entering = false;
+        self.search_ready = false;
     }
 
     fn move_next(&mut self) {

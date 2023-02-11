@@ -36,6 +36,9 @@ impl Displayable for MainList {
             ]).split(f.size());
 
         let mut table_vector = Vec::new();
+
+        //Change Up this part
+
         for x in 0..self.widget_table.len() {
             table_vector.push(Row::new(self.widget_table[x].clone()));
         }
