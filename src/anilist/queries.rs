@@ -18,6 +18,7 @@ pub const ANIME_LIST_PAGE:&str = "
                 mediaList(userId:$userId, type:ANIME){
                     id
                     media {
+                        id
                         title {
                             romaji
                             native
@@ -71,10 +72,12 @@ pub const SEARCH_STRING:&str = "
                 media(type:ANIME, search:$keyword){
                     id
                     title {
-                      romaji
+                        romaji
                         native
                     }
                     format
+                    season
+                    seasonYear
                 }
             }
         }

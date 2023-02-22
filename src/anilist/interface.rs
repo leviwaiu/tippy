@@ -7,6 +7,8 @@ use crate::anilist::queries::{
     VIEWER_QUERY_STRING
 };
 use crate::list_entry::{ListEntry, ListStatus};
+use crate::search_entry::AnimeSearchEntry;
+
 
 pub struct AniListInterface {
     client: AniListClient,
@@ -14,6 +16,7 @@ pub struct AniListInterface {
 
     main_list: Vec<ListEntry>,
 }
+
 
 impl AniListInterface {
     pub fn default() -> Self {
@@ -73,26 +76,26 @@ impl AniListInterface {
         Ok(res)
     }
 
-    fn fetch_anime_list_page_filtered(
-        &self,
-        page: u8,
-        status: ListStatus,
-    ) -> serde_json::Result<serde_json::Value> {
-        let query = ANIME_LIST_PAGE_FILTERED_STRING;
-        let serde_query = serde_json::json!({"query":query, "variables": {
-            "userId": self.viewer_id.as_ref().unwrap(),
-            "page": page,
-            "perPage":50,
-            "status": [status.to_string()],
-        }});
-        let fut_resp = self.client.fetch_auth_content(serde_query);
-        let result = match fut_resp {
-            Ok(res) => res,
-            Err(_) => panic!("Error while fetching authcode"),
-        };
-        let res: serde_json::Value = serde_json::from_str(&result)?;
-        Ok(res)
-    }
+    // fn fetch_anime_list_page_filtered(
+    //     &self,
+    //     page: u8,
+    //     status: ListStatus,
+    // ) -> serde_json::Result<serde_json::Value> {
+    //     let query = ANIME_LIST_PAGE_FILTERED_STRING;
+    //     let serde_query = serde_json::json!({"query":query, "variables": {
+    //         "userId": self.viewer_id.as_ref().unwrap(),
+    //         "page": page,
+    //         "perPage":50,
+    //         "status": [status.to_string()],
+    //     }});
+    //     let fut_resp = self.client.fetch_auth_content(serde_query);
+    //     let result = match fut_resp {
+    //         Ok(res) => res,
+    //         Err(_) => panic!("Error while fetching authcode"),
+    //     };
+    //     let res: serde_json::Value = serde_json::from_str(&result)?;
+    //     Ok(res)
+    // }
 
     fn process_anime_entry(anime_list: &Vec<serde_json::Value>) -> Vec<ListEntry> {
         let mut output_list = Vec::new();
@@ -119,10 +122,10 @@ impl AniListInterface {
         output_list
     }
 
-    pub fn fetch_anime_list(&mut self, statusfilter: ListStatus) -> Vec<ListEntry> {
+    pub fn fetch_full_anime_list(&mut self) {
         let mut anime_list = Vec::new();
         let firstpage = self
-            .fetch_anime_list_page_filtered(1, statusfilter.clone())
+            .fetch_anime_list_page(1)
             .unwrap();
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
         anime_list.extend(AniListInterface::process_anime_entry(list));
@@ -134,14 +137,13 @@ impl AniListInterface {
         while has_next_page {
             x += 1;
             let nextpage = self
-                .fetch_anime_list_page_filtered(x as u8, statusfilter.clone())
+                .fetch_anime_list_page(x as u8)
                 .unwrap();
             let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
             anime_list.extend(AniListInterface::process_anime_entry(list));
             has_next_page = nextpage["data"]["Page"]["pageInfo"]["hasNextPage"].as_bool().unwrap();
         }
         self.main_list = anime_list.clone();
-        anime_list
     }
 
     pub fn edit_anime_watchcount(
@@ -162,7 +164,7 @@ impl AniListInterface {
         Ok(res)
     }
 
-    pub fn search_anime(&self, keyword: String) -> serde_json::Result<serde_json::Value> {
+    pub fn search_anime(&self, keyword: String) -> serde_json::Result<Vec<AnimeSearchEntry>> {
         let query = SEARCH_STRING;
         let serde_query = serde_json::json!({"query":query, "variables": {
             "keyword": keyword,
@@ -175,8 +177,28 @@ impl AniListInterface {
             Err(_) => panic!("Error while fetching authcode"),
         };
         let res: serde_json::Value = serde_json::from_str(&result)?;
-        Ok(res)
+        let content = res["data"]["Page"]["media"].as_array().unwrap();
+        let mut anime_result = Vec::new();
+        for x in content {
+            let search_id = x["id"].as_u64().unwrap();
+            let mut status = None;
+            for i in &self.main_list {
+                if search_id as usize == i.media_id() {
+                    status = Some(i.status());
+                }
+            }
+            let new_res = AnimeSearchEntry::default(
+                String::from(x["title"]["native"].as_str().unwrap()),
+                String::from(x["format"].as_str().unwrap()),
+                format!("{} {}", x["seasonYear"], x["season"]),
+                status
+            );
+            anime_result.push(new_res);
+        }
+        Ok(anime_result)
     }
 
     pub fn get_main_list(&self) -> Vec<ListEntry> {self.main_list.clone()}
+
+
 }

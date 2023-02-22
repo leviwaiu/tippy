@@ -26,9 +26,9 @@ pub trait Displayable {
     fn connect_interface(&mut self, interface:&AniListInterface);
 }
 
-trait Scrollable{
-    fn move_next();
+pub trait Scrollable{
+    fn move_next(&mut self);
 
-    fn move_prev();
+    fn move_prev(&mut self);
 }
 
