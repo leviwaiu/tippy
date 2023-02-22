@@ -77,7 +77,8 @@ impl Tippy {
         self.interface.authentication();
         self.interface.fetch_viewer().expect("ERROR: Failed to find Viewer for AniList Interface");
 
-        self.main_list.set_anime_list(self.interface.fetch_anime_list(self.main_list.get_current_sort()));
+        self.interface.fetch_full_anime_list();
+        self.main_list.get_display_list_by_status(self.interface.get_main_list());
         self.main_list.set_widget_strings();
     }
 }

@@ -18,6 +18,7 @@ pub const ANIME_LIST_PAGE:&str = "
                 mediaList(userId:$userId, type:ANIME){
                     id
                     media {
+                        id
                         title {
                             romaji
                             native

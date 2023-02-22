@@ -76,26 +76,26 @@ impl AniListInterface {
         Ok(res)
     }
 
-    fn fetch_anime_list_page_filtered(
-        &self,
-        page: u8,
-        status: ListStatus,
-    ) -> serde_json::Result<serde_json::Value> {
-        let query = ANIME_LIST_PAGE_FILTERED_STRING;
-        let serde_query = serde_json::json!({"query":query, "variables": {
-            "userId": self.viewer_id.as_ref().unwrap(),
-            "page": page,
-            "perPage":50,
-            "status": [status.to_string()],
-        }});
-        let fut_resp = self.client.fetch_auth_content(serde_query);
-        let result = match fut_resp {
-            Ok(res) => res,
-            Err(_) => panic!("Error while fetching authcode"),
-        };
-        let res: serde_json::Value = serde_json::from_str(&result)?;
-        Ok(res)
-    }
+    // fn fetch_anime_list_page_filtered(
+    //     &self,
+    //     page: u8,
+    //     status: ListStatus,
+    // ) -> serde_json::Result<serde_json::Value> {
+    //     let query = ANIME_LIST_PAGE_FILTERED_STRING;
+    //     let serde_query = serde_json::json!({"query":query, "variables": {
+    //         "userId": self.viewer_id.as_ref().unwrap(),
+    //         "page": page,
+    //         "perPage":50,
+    //         "status": [status.to_string()],
+    //     }});
+    //     let fut_resp = self.client.fetch_auth_content(serde_query);
+    //     let result = match fut_resp {
+    //         Ok(res) => res,
+    //         Err(_) => panic!("Error while fetching authcode"),
+    //     };
+    //     let res: serde_json::Value = serde_json::from_str(&result)?;
+    //     Ok(res)
+    // }
 
     fn process_anime_entry(anime_list: &Vec<serde_json::Value>) -> Vec<ListEntry> {
         let mut output_list = Vec::new();
@@ -122,10 +122,10 @@ impl AniListInterface {
         output_list
     }
 
-    pub fn fetch_anime_list(&mut self, statusfilter: ListStatus) -> Vec<ListEntry> {
+    pub fn fetch_full_anime_list(&mut self) {
         let mut anime_list = Vec::new();
         let firstpage = self
-            .fetch_anime_list_page_filtered(1, statusfilter.clone())
+            .fetch_anime_list_page(1)
             .unwrap();
         let list = firstpage["data"]["Page"]["mediaList"].as_array().unwrap();
         anime_list.extend(AniListInterface::process_anime_entry(list));
@@ -137,14 +137,13 @@ impl AniListInterface {
         while has_next_page {
             x += 1;
             let nextpage = self
-                .fetch_anime_list_page_filtered(x as u8, statusfilter.clone())
+                .fetch_anime_list_page(x as u8)
                 .unwrap();
             let list = nextpage["data"]["Page"]["mediaList"].as_array().unwrap();
             anime_list.extend(AniListInterface::process_anime_entry(list));
             has_next_page = nextpage["data"]["Page"]["pageInfo"]["hasNextPage"].as_bool().unwrap();
         }
         self.main_list = anime_list.clone();
-        anime_list
     }
 
     pub fn edit_anime_watchcount(
@@ -200,4 +199,6 @@ impl AniListInterface {
     }
 
     pub fn get_main_list(&self) -> Vec<ListEntry> {self.main_list.clone()}
+
+
 }

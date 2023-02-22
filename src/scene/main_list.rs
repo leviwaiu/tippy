@@ -15,8 +15,7 @@ use tui::backend::CrosstermBackend;
 use crate::anilist::interface::AniListInterface;
 
 pub struct MainList {
-    anime_list: Vec<ListEntry>,
-    filtered_list: Vec<ListEntry>,
+    display_list: Vec<ListEntry>,
 
     status_bar: String,
 
@@ -101,9 +100,7 @@ impl Displayable for MainList {
 impl MainList {
     pub fn default() -> Self {
         Self {
-            anime_list: Vec::new(),
-
-            filtered_list: Vec::new(),
+            display_list: Vec::new(),
 
             status_bar: String::from("Welcome to Tippy!"),
             widget_table: Vec::new(),
@@ -116,26 +113,26 @@ impl MainList {
 
     pub fn set_widget_strings(&mut self) {
         self.widget_table = Vec::new();
-        for x in 0..self.anime_list.len() {
+        for x in 0..self.display_list.len() {
             self.widget_table.push(self.create_string(x));
         }
     }
 
     fn create_string(&self, index: usize) -> Vec<String> {
-        if index >= self.anime_list.len() {
+        if index >= self.display_list.len() {
             return vec!["".to_string(),
                         "".to_string(),
                         "".to_string(),
                         "".to_string()];
         }
         let watchcount = format!("{}/{}",
-                                 self.anime_list[index].watched_count(),
-                                 self.anime_list[index].total_count());
+                                 self.display_list[index].watched_count(),
+                                 self.display_list[index].total_count());
         let output = vec!(
-            self.anime_list[index].title().to_string(),
+            self.display_list[index].title().to_string(),
             watchcount,
-            self.anime_list[index].score().to_string(),
-            self.anime_list[index].status().to_description()
+            self.display_list[index].score().to_string(),
+            self.display_list[index].status().to_description()
         );
 
         output
@@ -171,7 +168,7 @@ impl MainList {
 
     fn edit_watchcount(&mut self, key: KeyCode) {
         let i = self.widget_state.selected().expect("Error: WATCH_NONE");
-        let current = &mut self.anime_list[i];
+        let current = &mut self.display_list[i];
         match key {
             KeyCode::Char('+') => {
                 current.add_watched();
@@ -182,17 +179,26 @@ impl MainList {
             _ => {}
         }
 
-        self._change_viewcount = Some(self.anime_list[i].clone());
+        self._change_viewcount = Some(self.display_list[i].clone());
         self.set_widget_strings();
 
     }
 
-    pub fn get_anime_list(&self) -> Vec<ListEntry> {
-        self.anime_list.clone()
+    pub fn get_display_list(&self) -> Vec<ListEntry> {
+        self.display_list.clone()
     }
 
-    pub fn set_anime_list(&mut self, list: Vec<ListEntry>) {
-        self.anime_list = list;
+    pub fn set_display_list(&mut self, list: Vec<ListEntry>) {
+        self.display_list = list;
+    }
+
+    pub fn get_display_list_by_status(&mut self, full_list: Vec<ListEntry>) {
+        self.display_list = Vec::new();
+        for entry in full_list{
+            if entry.status() == self.current_sort {
+                self.display_list.push(entry.clone());
+            }
+        };
     }
 
     pub fn get_current_sort(&self) -> ListStatus {
