@@ -71,10 +71,12 @@ pub const SEARCH_STRING:&str = "
                 media(type:ANIME, search:$keyword){
                     id
                     title {
-                      romaji
+                        romaji
                         native
                     }
                     format
+                    season
+                    seasonYear
                 }
             }
         }

@@ -8,22 +8,18 @@ use tui::{
     widgets::{Row, Table, TableState},
 };
 use tui::backend::CrosstermBackend;
+use tui::layout::Rect;
 use tui::widgets::List;
 use crate::anilist::interface::AniListInterface;
 use crate::list_entry::ListStatus;
 
 use crate::scene::Displayable;
-
-struct SearchEntry {
-    name: String,
-    id: String,
-    added: ListStatus
-}
+use crate::search_entry::AnimeSearchEntry;
 
 pub struct AnimeSearch {
     keyword: String,
     widget_state: TableState,
-    result_display: Vec<SearchEntry>,
+    result_display: Vec<AnimeSearchEntry>,
     entering: bool,
     search_ready: bool,
 }
@@ -31,38 +27,73 @@ pub struct AnimeSearch {
 impl Displayable for AnimeSearch {
     fn widget(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>){
 
-        let layout = Layout::default().direction(Direction::Vertical)
+        let mut fsize_mod = f.size();
+        fsize_mod.height -= 1;
+
+        let mut layout = Layout::default().direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(6),
+                Constraint::Min(6),
                 Constraint::Percentage(99),
-                Constraint::Min(1),
-            ]).split(f.size());
+            ]).split(fsize_mod);
+
+        layout.push(Rect {
+            x:0,
+            y: fsize_mod.height,
+            width: fsize_mod.width,
+            height:1,
+        });
 
         let search_field = Table::new([
             Row::new(["Search String:", self.keyword.as_str()]),
-            Row::new(["Advanced Search:", ""]),
+            Row::new(["Advanced Search", ""]),
             Row::new(["",""]),
             Row::new(["Search", ""]),
             Row::new(["Reset", ""])
-        ]).style(Style::default().fg(Color::Blue)).widths(&[Constraint::Percentage(100)]);
+        ]).style(Style::default().fg(Color::Blue)).widths(&[Constraint::Min(20),
+                                                          Constraint::Percentage(80)])
+        .highlight_style(
+            Style::default().bg(Color::Black).fg(Color::White)
+        );
+
+        let mut result_table = Vec::new();
+        for x in &self.result_display {
+            result_table.push(Row::new(x.make_vec()));
+        }
+        let search_results = Table::new(result_table)
+            .widths(&[Constraint::Percentage(40),
+            Constraint::Percentage(20),
+            Constraint::Percentage(15),
+            Constraint::Percentage(15)
+        ]);
 
         let status_bar = Table::new([
             Row::new(["Test Thing Only here"]).style(Style::default().fg(Color::Blue))
         ]).widths(&[Constraint::Percentage(100)]);
 
-        f.render_widget(search_field, layout[0]);
+        f.render_stateful_widget(search_field, layout[0], &mut self.widget_state.clone());
+        f.render_widget(search_results, layout[1]);
+        f.render_widget(status_bar, layout[2]);
     }
 
     fn process_key(&mut self, key: KeyCode) {
+
         match key {
             KeyCode::Enter => self.press_enter(),
+            KeyCode::Up => self.move_prev(),
+            KeyCode::Down => self.move_next(),
+            KeyCode::Char(x) => if self.entering {
+                self.keyword = self.keyword.clone() + &*x.to_string();
+            }
+            KeyCode::Backspace => if self.entering {
+                self.keyword.pop();
+            }
             _ => {},
         }
     }
 
     fn connect_interface(&mut self, interface: &AniListInterface) {
         if self.search_ready {
-            let result = interface.search_anime(self.keyword.clone()).expect("TODO: Something went wrong here");
+            self.result_display = interface.search_anime(self.keyword.clone()).expect("TODO: Something went wrong here");
         }
     }
 }
@@ -79,6 +110,7 @@ impl AnimeSearch {
     }
 
     fn press_enter(&mut self) {
+
         match self.widget_state.selected() {
             Some(0) => self.entering = !self.entering,
             Some(1) => {}, // Advance Search,
@@ -99,7 +131,9 @@ impl AnimeSearch {
     fn move_next(&mut self) {
         let i = match self.widget_state.selected() {
             Some(x) => {
-                if x < 4 {
+                if x == 1{
+                    x + 2
+                } else if x < 4 {
                     x + 1
                 } else {
                     x
@@ -113,7 +147,9 @@ impl AnimeSearch {
     fn move_prev(&mut self) {
         let i = match self.widget_state.selected() {
             Some(i) => {
-                if i > 0 {
+                if i == 3 {
+                    i - 2
+                } else if i > 0{
                     i - 1
                 } else {
                     i

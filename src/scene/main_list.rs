@@ -8,7 +8,7 @@ use tui::{
     style::{Color, Style},
     widgets::{Row, Table, TableState},
 };
-use tui::layout::{Constraint, Direction, Layout};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 
 use crossterm::event::KeyCode;
 use tui::backend::CrosstermBackend;
@@ -24,16 +24,27 @@ pub struct MainList {
     widget_state: TableState,
     current_sort: ListStatus,
 
-    _change: Option<ListEntry>,
+    _change_viewcount: Option<ListEntry>,
 }
 
 impl Displayable for MainList {
     fn widget(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>) {
-        let layout = Layout::default().direction(Direction::Vertical)
+
+        let mut fsize_mod = f.size();
+        fsize_mod.height -= 1;
+
+        let mut layout = Layout::default().direction(Direction::Vertical)
             .constraints([
-                Constraint::Percentage(99),
-                Constraint::Length(1),
-            ]).split(f.size());
+                Constraint::Percentage(100),
+            ]).split(fsize_mod);
+
+        layout.push(Rect {
+            x:0,
+            y:fsize_mod.height,
+            width: fsize_mod.width,
+            height:1,
+        });
+
 
         let mut table_vector = Vec::new();
 
@@ -75,10 +86,10 @@ impl Displayable for MainList {
     }
 
     fn connect_interface(&mut self, interface: &AniListInterface) {
-        match &self._change {
+        match &self._change_viewcount {
             Some(item) => {
                 interface.edit_anime_watchcount(item.clone()).expect("Error: CHANGE_EDIT");
-                self._change = None;
+                self._change_viewcount = None;
             }
             None => {},
         }
@@ -99,7 +110,7 @@ impl MainList {
             widget_state: TableState::default(),
             current_sort: ListStatus::CURRENT,
 
-            _change:None,
+            _change_viewcount:None,
         }
     }
 
@@ -171,7 +182,7 @@ impl MainList {
             _ => {}
         }
 
-        self._change = Some(self.anime_list[i].clone());
+        self._change_viewcount = Some(self.anime_list[i].clone());
         self.set_widget_strings();
 
     }

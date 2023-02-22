@@ -7,6 +7,7 @@ mod secrets;
 mod tippy;
 mod terminal;
 mod scene;
+mod search_entry;
 
 
 fn main() {

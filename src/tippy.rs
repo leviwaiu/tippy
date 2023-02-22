@@ -38,7 +38,7 @@ impl Tippy {
         self.setup();
 
         loop {
-            let mut display_scene: Box<&mut dyn Displayable> = match &self.curr_scene {
+            let display_scene: Box<&mut dyn Displayable> = match &self.curr_scene {
                 Scenes::MainList => Box::new(&mut self.main_list),
                 Scenes::AnimeSearch => Box::new(&mut self.anime_search),
             };
