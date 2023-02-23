@@ -17,11 +17,15 @@ use crate::scene::Displayable;
 use crate::search_entry::AnimeSearchEntry;
 
 pub struct AnimeSearch {
+
     keyword: String,
     widget_state: TableState,
-    result_display: Vec<AnimeSearchEntry>,
+    result_display: Option<Vec<AnimeSearchEntry>>,
+    result_state: TableState,
     entering: bool,
     search_ready: bool,
+
+    toolbar_text: String,
 }
 
 impl Displayable for AnimeSearch {
@@ -56,22 +60,26 @@ impl Displayable for AnimeSearch {
         );
 
         let mut result_table = Vec::new();
-        for x in &self.result_display {
-            result_table.push(Row::new(x.make_vec()));
+        if let Some(dis_list) = &self.result_display {
+            for x in dis_list {
+                result_table.push(Row::new(x.make_vec()));
+            }
         }
         let search_results = Table::new(result_table)
             .widths(&[Constraint::Percentage(40),
             Constraint::Percentage(20),
             Constraint::Percentage(15),
             Constraint::Percentage(15)
-        ]);
+        ]).highlight_style(
+            Style::default().bg(Color::Black).fg(Color::White)
+        );;
 
         let status_bar = Table::new([
-            Row::new(["Test Thing Only here"]).style(Style::default().fg(Color::Blue))
+            Row::new([self.toolbar_text.clone()]).style(Style::default().fg(Color::Blue))
         ]).widths(&[Constraint::Percentage(100)]);
 
         f.render_stateful_widget(search_field, layout[0], &mut self.widget_state.clone());
-        f.render_widget(search_results, layout[1]);
+        f.render_stateful_widget(search_results, layout[1], &mut self.result_state.clone());
         f.render_widget(status_bar, layout[2]);
     }
 
@@ -82,10 +90,10 @@ impl Displayable for AnimeSearch {
             KeyCode::Up => self.move_prev(),
             KeyCode::Down => self.move_next(),
             KeyCode::Char(x) => if self.entering {
-                self.keyword = self.keyword.clone() + &*x.to_string();
+                self.toolbar_text = self.toolbar_text.clone() + &*x.to_string();
             }
             KeyCode::Backspace => if self.entering {
-                self.keyword.pop();
+                self.toolbar_text.pop();
             }
             _ => {},
         }
@@ -93,7 +101,12 @@ impl Displayable for AnimeSearch {
 
     fn connect_interface(&mut self, interface: &AniListInterface) {
         if self.search_ready {
-            self.result_display = interface.search_anime(self.keyword.clone()).expect("TODO: Something went wrong here");
+            self.result_display =
+                Some(interface.search_anime(self.keyword.clone())
+                    .expect("TODO: Something went wrong here"));
+            self.result_state.select(Some(0));
+            self.widget_state.select(None);
+            self.search_ready = false;
         }
     }
 }
@@ -103,16 +116,28 @@ impl AnimeSearch {
         Self{
             keyword:String::new(),
             widget_state: TableState::default(),
-            result_display: Vec::new(),
+            result_display: None,
+            result_state: TableState::default(),
             entering: false,
             search_ready: false,
+
+            toolbar_text: String::from("Search Function"),
         }
     }
 
     fn press_enter(&mut self) {
 
         match self.widget_state.selected() {
-            Some(0) => self.entering = !self.entering,
+            Some(0) => if !self.entering {
+                self.entering = true;
+                self.toolbar_text = String::new();
+            }
+            else {
+                self.entering = false;
+                self.keyword = self.toolbar_text.clone();
+                self.toolbar_text = String::from("Search Function");
+            }
+            ,
             Some(1) => {}, // Advance Search,
             Some(2) => {}, //
             Some(3) => self.search_ready = !self.search_ready, //Search,
@@ -124,40 +149,90 @@ impl AnimeSearch {
     fn reset(&mut self) {
         self.keyword = String::new();
         self.widget_state.select(Some(0));
+        self.result_state.select(None);
+        self.result_display = None;
         self.entering = false;
         self.search_ready = false;
     }
 
     fn move_next(&mut self) {
-        let i = match self.widget_state.selected() {
-            Some(x) => {
-                if x == 1{
-                    x + 2
-                } else if x < 4 {
-                    x + 1
-                } else {
-                    x
+        if self.entering {
+            return;
+        }
+
+        if let Some(list) = &self.result_display {
+            let i = match self.result_state.selected() {
+                Some(i) => {
+                    if i + 1 == list.len() {
+                        i
+                    } else {
+                        i + 1
+                    }
                 }
-            }
-            None => 0,
-        };
-        self.widget_state.select(Some(i));
+                None => 0,
+            };
+            self.result_state.select(Some(i));
+            self.widget_state.select(None);
+        } else {
+            let i = match self.widget_state.selected() {
+                Some(i) => {
+                    if i == 1 {
+                        i + 2
+                    } else if i < 4 {
+                        i + 1
+                    } else {
+                        i
+                    }
+                }
+                None => 0,
+            };
+            self.widget_state.select(Some(i));
+        }
     }
 
     fn move_prev(&mut self) {
-        let i = match self.widget_state.selected() {
-            Some(i) => {
-                if i == 3 {
-                    i - 2
-                } else if i > 0{
-                    i - 1
-                } else {
-                    i
+        if self.entering {
+            return;
+        }
+
+        if let Some(_) = &self.result_display {
+            let i = match self.result_state.selected() {
+                Some(i) => {
+                    if i == 0 {
+                        None
+                    } else {
+                        Some(i - 1)
+                    }
                 }
-            }
-            None => 0,
-        };
-        self.widget_state.select(Some(i));
+                None => None,
+            };
+            let j = match self.widget_state.selected() {
+                Some(i) => Some(i),
+                None => if i == None {
+                    Some(4)
+                } else {
+                    None
+                },
+            };
+
+            self.result_state.select(i);
+            self.widget_state.select(j);
+        } else {
+            let i = match self.widget_state.selected() {
+                Some(i) => {
+                    if i == 3 {
+                        i - 2
+                    } else if i > 0 {
+                        i - 1
+                    } else {
+                        i
+                    }
+                }
+                None => 0,
+            };
+            self.widget_state.select(Some(i));
+        }
+
     }
 
 }

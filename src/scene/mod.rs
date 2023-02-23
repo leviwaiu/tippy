@@ -3,7 +3,6 @@ pub mod anime_search;
 mod anime_details;
 mod settings;
 
-
 use std::io::Stdout;
 use crossterm::event::KeyCode;
 use tui::{
