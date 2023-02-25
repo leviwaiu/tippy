@@ -1,4 +1,6 @@
-use strum_macros::EnumIter;
+
+use tui::widgets::List;
+use crate::list_entry::ListStatus::{COMPLETED, CURRENT, DROPPED, PAUSED, PLANNING, REPEATING};
 
 #[derive(Clone)]
 pub struct ListEntry {
@@ -12,7 +14,7 @@ pub struct ListEntry {
     score: u8,
 }
 
-#[derive(Clone, Eq, PartialEq, EnumIter)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum ListStatus {
     CURRENT,
     PLANNING,
@@ -25,50 +27,54 @@ pub enum ListStatus {
 impl ListStatus {
     pub fn to_description(&self) -> String {
         match self {
-            Self::CURRENT => "Watching",
-            Self::PLANNING => "Plan to Watch",
-            Self::COMPLETED => "Completed",
-            Self::DROPPED => "Dropped",
-            Self::PAUSED => "Paused",
-            Self::REPEATING => "Watching (R)",
+            CURRENT => "Watching",
+            PLANNING => "Plan to Watch",
+            COMPLETED => "Completed",
+            DROPPED => "Dropped",
+            PAUSED => "Paused",
+            REPEATING => "Watching (R)",
         }
         .to_string()
     }
 
     pub fn to_string(&self) -> String {
         match self {
-            Self::CURRENT => "CURRENT",
-            Self::PLANNING => "PLANNING",
-            Self::COMPLETED => "COMPLETED",
-            Self::DROPPED => "DROPPED",
-            Self::PAUSED => "PAUSED",
-            Self::REPEATING => "REPEATING",
+            CURRENT => "CURRENT",
+            PLANNING => "PLANNING",
+            COMPLETED => "COMPLETED",
+            DROPPED => "DROPPED",
+            PAUSED => "PAUSED",
+            REPEATING => "REPEATING",
         }
         .to_string()
     }
 
     pub fn from_string(str: &str) -> Option<Self> {
         match str {
-            "CURRENT" => Some(Self::CURRENT),
-            "PLANNING" => Some(Self::PLANNING),
-            "COMPLETED" => Some(Self::COMPLETED),
-            "DROPPED" => Some(Self::DROPPED),
-            "PAUSED" => Some(Self::PAUSED),
-            "REPEATING" => Some(Self::REPEATING),
+            "CURRENT" => Some(CURRENT),
+            "PLANNING" => Some(PLANNING),
+            "COMPLETED" => Some(COMPLETED),
+            "DROPPED" => Some(DROPPED),
+            "PAUSED" => Some(PAUSED),
+            "REPEATING" => Some(REPEATING),
             _ => None,
         }
     }
 
     pub fn from_description(str: &str) -> Option<Self> {
         match str {
-            "Watching" => Some(Self::CURRENT),
-            "Plan to Watch" => Some(Self::PLANNING),
-            "Completed" => Some(Self::COMPLETED),
-            "Dropped" => Some(Self::DROPPED),
-            "Paused" => Some(Self::PAUSED),
-            "Watching (R)" => Some(Self::REPEATING),
+            "Watching" => Some(CURRENT),
+            "Plan to Watch" => Some(PLANNING),
+            "Completed" => Some(COMPLETED),
+            "Dropped" => Some(DROPPED),
+            "Paused" => Some(PAUSED),
+            "Watching (R)" => Some(REPEATING),
             _ => None,
         }
+    }
+
+    pub fn create_vec() -> Vec<ListStatus> {
+        Vec::from([CURRENT, PLANNING, COMPLETED, DROPPED, PAUSED, REPEATING])
     }
 }
 
