@@ -79,7 +79,7 @@ impl Tippy {
 
         self.interface.fetch_full_anime_list();
         self.main_list.get_display_list_by_status(self.interface.get_main_list());
-        self.main_list.set_widget_strings();
+        self.main_list.set_display_string_table();
     }
 }
 

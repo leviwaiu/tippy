@@ -60,7 +60,7 @@ impl Displayable for MainList {
 
 
         let mut table_vector = Vec::new();
-
+        self.set_display_string_table();
         //Change Up this part
 
         for x in 0..self.display_string_table.len() {
@@ -80,7 +80,6 @@ impl Displayable for MainList {
                 Style::default().bg(Color::Black).fg(Color::White)
             );
 
-        self.set_widget_strings();
 
         if self.current_state == CurrentState::SORTING {
             let mut hori_layout = Layout::default().direction(Direction::Horizontal)
@@ -164,7 +163,7 @@ impl MainList {
         }
     }
 
-    pub fn set_widget_strings(&mut self) {
+    pub fn set_display_string_table(&mut self) {
         self.display_string_table = Vec::new();
         for x in 0..self.display_list.len() {
             self.display_string_table.push(self.create_string(x));
@@ -284,7 +283,7 @@ impl MainList {
         }
 
         self._change_viewcount = Some(self.display_list[i].clone());
-        self.set_widget_strings();
+        self.set_display_string_table();
 
     }
 
