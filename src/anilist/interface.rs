@@ -1,11 +1,6 @@
 use crate::anilist::client::AniListClient;
-use crate::anilist::queries::{
-    ANIME_LIST_PAGE,
-    ANIME_LIST_PAGE_FILTERED_STRING,
-    EDIT_WATCHCOUNT_STRING,
-    SEARCH_STRING,
-    VIEWER_QUERY_STRING
-};
+use crate::anilist::queries::{ANIME_DETAIL_QUERY_STRING, ANIME_LIST_PAGE, ANIME_LIST_PAGE_FILTERED_STRING, EDIT_WATCHCOUNT_STRING, SEARCH_STRING, VIEWER_QUERY_STRING};
+use crate::anime_entry::ExtendedInfo;
 use crate::list_entry::{ListEntry, ListStatus};
 use crate::search_entry::AnimeSearchEntry;
 
@@ -75,27 +70,6 @@ impl AniListInterface {
         let res: serde_json::Value = serde_json::from_str(&result)?;
         Ok(res)
     }
-
-    // fn fetch_anime_list_page_filtered(
-    //     &self,
-    //     page: u8,
-    //     status: ListStatus,
-    // ) -> serde_json::Result<serde_json::Value> {
-    //     let query = ANIME_LIST_PAGE_FILTERED_STRING;
-    //     let serde_query = serde_json::json!({"query":query, "variables": {
-    //         "userId": self.viewer_id.as_ref().unwrap(),
-    //         "page": page,
-    //         "perPage":50,
-    //         "status": [status.to_string()],
-    //     }});
-    //     let fut_resp = self.client.fetch_auth_content(serde_query);
-    //     let result = match fut_resp {
-    //         Ok(res) => res,
-    //         Err(_) => panic!("Error while fetching authcode"),
-    //     };
-    //     let res: serde_json::Value = serde_json::from_str(&result)?;
-    //     Ok(res)
-    // }
 
     fn process_anime_entry(anime_list: &Vec<serde_json::Value>) -> Vec<ListEntry> {
         let mut output_list = Vec::new();
@@ -188,6 +162,7 @@ impl AniListInterface {
                 }
             }
             let new_res = AnimeSearchEntry::default(
+                x["id"].as_u64().unwrap() as usize,
                 String::from(x["title"]["native"].as_str().unwrap()),
                 String::from(x["format"].as_str().unwrap()),
                 format!("{} {}", x["seasonYear"], x["season"]),
@@ -198,7 +173,28 @@ impl AniListInterface {
         Ok(anime_result)
     }
 
+    pub fn get_anime_details(&self, media_id:usize) -> serde_json::Result<usize>{
+        let query = ANIME_DETAIL_QUERY_STRING;
+        let serde_query = serde_json::json!({"query":query, "variables": {
+            "media_id": media_id,
+        }});
+        let fut_resp = self.client.fetch_auth_content(serde_query);
+        let result = match fut_resp {
+            Ok(res) => res,
+            Err(_) => panic!("Error while fetching authcode"),
+        };
+        let res: serde_json::Value = serde_json::from_str(&result)?;
+        let content = res["data"]["Media"].as_array().unwrap();
+
+        Ok(0)
+    }
+
+
+
+
+
     pub fn get_main_list(&self) -> Vec<ListEntry> {self.main_list.clone()}
+
 
 
 }

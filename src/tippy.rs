@@ -41,6 +41,7 @@ impl Tippy {
             let display_scene: Box<&mut dyn Displayable> = match &self.curr_scene {
                 Scenes::MainList => Box::new(&mut self.main_list),
                 Scenes::AnimeSearch => Box::new(&mut self.anime_search),
+                Scenes::AnimeInfo => Box::new(&mut self.anime_search)
             };
 
             self.new_terminal.render_widget(|f| display_scene.widget(f)).expect("TODO: panic message");
@@ -66,6 +67,8 @@ impl Tippy {
             }
 
             display_scene.connect_interface(&self.interface);
+
+
 
         }
 

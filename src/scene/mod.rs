@@ -15,6 +15,7 @@ use crate::anilist::interface::AniListInterface;
 pub(crate) enum Scenes {
     MainList,
     AnimeSearch,
+    AnimeInfo,
 }
 
 pub trait Displayable {

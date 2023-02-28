@@ -1,6 +1,7 @@
 use crate::list_entry::ListStatus;
 
 pub struct AnimeSearchEntry {
+    media_id: usize,
     title: String,
     mode: String,
     season: String,
@@ -9,8 +10,9 @@ pub struct AnimeSearchEntry {
 
 impl AnimeSearchEntry {
 
-    pub fn default(title:String, mode:String, season:String, status:Option<ListStatus>) -> Self {
+    pub fn default(media_id: usize, title:String, mode:String, season:String, status:Option<ListStatus>) -> Self {
         AnimeSearchEntry {
+            media_id,
             title,
             mode,
             season,
@@ -28,5 +30,9 @@ impl AnimeSearchEntry {
             status,
             self.season.clone(),
             self.mode.clone()])
+    }
+
+    pub fn get_id(&self) -> usize {
+        self.media_id
     }
 }

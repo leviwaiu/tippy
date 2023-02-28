@@ -296,14 +296,6 @@ impl MainList {
         }
     }
 
-    pub fn get_display_list(&self) -> Vec<ListEntry> {
-        self.display_list.clone()
-    }
-
-    pub fn set_display_list(&mut self, list: Vec<ListEntry>) {
-        self.display_list = list;
-    }
-
     pub fn get_display_list_by_status(&mut self, full_list: Vec<ListEntry>) {
         self.display_list = Vec::new();
         for entry in full_list{
@@ -313,7 +305,4 @@ impl MainList {
         };
     }
 
-    pub fn get_current_sort(&self) -> ListStatus {
-        self.current_sort.clone()
-    }
 }

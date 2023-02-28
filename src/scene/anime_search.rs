@@ -25,6 +25,8 @@ pub struct AnimeSearch {
     entering: bool,
     search_ready: bool,
 
+    selected_anime: Option<AnimeSearchEntry>,
+
     toolbar_text: String,
 }
 
@@ -48,7 +50,7 @@ impl Displayable for AnimeSearch {
         });
 
         let search_field = Table::new([
-            Row::new(["Search String:", self.keyword.as_str()]),
+            Row::new(["Search by Title", self.keyword.as_str()]),
             Row::new(["Advanced Search", ""]),
             Row::new(["",""]),
             Row::new(["Search", ""]),
@@ -108,6 +110,11 @@ impl Displayable for AnimeSearch {
             self.widget_state.select(None);
             self.search_ready = false;
         }
+
+        if let Some(anime) = &self.selected_anime {
+            let media_id = anime.get_id();
+            interface.get_anime_details(media_id).expect("TODO: panic message");
+        }
     }
 }
 
@@ -120,6 +127,8 @@ impl AnimeSearch {
             result_state: TableState::default(),
             entering: false,
             search_ready: false,
+
+            selected_anime: None,
 
             toolbar_text: String::from("Search Function"),
         }

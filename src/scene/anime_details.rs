@@ -5,16 +5,12 @@ use tui::Frame;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::widgets::List;
 use crate::anilist::interface::AniListInterface;
+use crate::anime_entry::AnimeEntry;
 use crate::list_entry::ListEntry;
 use crate::scene::Displayable;
 
 pub struct AnimeDetails {
-    anime: ListEntry,
-    episode_duration: usize,
-    start_date: usize,
-    end_date: usize,
-    average_score: usize,
-    mean_score: usize,
+    anime: AnimeEntry,
 }
 
 impl Displayable for AnimeDetails {
@@ -34,9 +30,6 @@ impl Displayable for AnimeDetails {
             width: fsize_mod.width,
             height:1,
         });
-
-
-
     }
 
     fn process_key(&mut self, key: KeyCode) {
@@ -49,15 +42,9 @@ impl Displayable for AnimeDetails {
 }
 
 impl AnimeDetails {
-    fn default(entry: ListEntry) -> Self {
+    fn default(entry: AnimeEntry) -> Self {
         Self {
             anime:entry,
-
-            episode_duration: 0,
-            start_date: 0,
-            end_date: 0,
-            average_score: 0,
-            mean_score: 0,
         }
     }
 }

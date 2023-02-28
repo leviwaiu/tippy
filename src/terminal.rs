@@ -59,7 +59,7 @@ impl TerminalInterface {
     pub fn render_widget<F>(&mut self, widget:F) -> Result<(), std::io::Error> where
         F: FnOnce(&mut Frame<'_, CrosstermBackend<std::io::Stdout>>)
     {
-        self._terminal.draw(widget);
+        self._terminal.draw(widget).expect("");
         Ok(())
     }
 }

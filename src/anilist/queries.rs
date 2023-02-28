@@ -91,3 +91,18 @@ pub const EDIT_WATCHCOUNT_STRING:&str = "
             }
         }
         ";
+
+pub const ANIME_DETAIL_QUERY_STRING:&str = "
+        query($media_id: Int){
+            Media(id:$media_id){
+                id
+                type
+                studios(isMain:true) {
+                    nodes
+                }
+                duration
+                startDate
+                endDate
+            }
+        }
+";

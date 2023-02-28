@@ -1,17 +1,17 @@
 
 use tui::widgets::List;
+use crate::anime_entry::AnimeEntry;
 use crate::list_entry::ListStatus::{COMPLETED, CURRENT, DROPPED, PAUSED, PLANNING, REPEATING};
 
+//Should move most of the items into AnimeEntry?
 #[derive(Clone)]
 pub struct ListEntry {
     id: usize,
-    media_id: usize,
-    title: String,
-    title_length: Option<usize>,
+
     watched_count: usize,
-    total_count: usize,
     status: ListStatus,
     score: u8,
+    anime_entry: AnimeEntry,
 }
 
 #[derive(Clone, Eq, PartialEq)]
@@ -90,18 +90,18 @@ impl ListEntry {
     ) -> Self {
         Self {
             id: id as usize,
-            media_id: media_id as usize,
-            title,
-            title_length: None,
             watched_count: watched_count as usize,
-            total_count: total_count as usize,
             status: entry_type,
             score: score as u8,
+
+            anime_entry: AnimeEntry::new(
+                media_id as usize, title, total_count as usize,
+            )
         }
     }
 
     pub fn add_watched(&mut self) {
-        if self.watched_count < self.total_count {
+        if self.watched_count < self.total_count() {
             self.watched_count += 1;
         }
     }
@@ -114,16 +114,16 @@ impl ListEntry {
         self.id
     }
     pub fn media_id(&self) -> usize {
-        self.media_id
+        self.anime_entry.media_id()
     }
-    pub fn title(&self) -> &str {
-        &self.title
+    pub fn title(&self) -> String {
+        self.anime_entry.title()
     }
     pub fn watched_count(&self) -> usize {
         self.watched_count
     }
     pub fn total_count(&self) -> usize {
-        self.total_count
+        self.anime_entry.episode_count()
     }
     pub fn status(&self) -> ListStatus {
         self.status.clone()
