@@ -98,11 +98,23 @@ pub const ANIME_DETAIL_QUERY_STRING:&str = "
                 id
                 type
                 studios(isMain:true) {
-                    nodes
+                    nodes {
+                        id
+                        name
+                    }
                 }
+                episodes
                 duration
-                startDate
-                endDate
+                startDate {
+                    year
+                    month
+                    day
+                }
+                endDate {
+                    year
+                    month
+                    day
+                }
             }
         }
 ";

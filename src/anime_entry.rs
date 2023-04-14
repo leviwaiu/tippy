@@ -35,7 +35,6 @@ pub struct ExtendedInfo {
     average_score: usize,
 }
 
-
 impl AnimeEntry {
     pub fn new(media_id: usize, name: String, episode_count: usize) -> Self {
         Self { media_id, title: name, episode_count, entended_entry: None }
@@ -52,8 +51,6 @@ impl AnimeEntry {
     pub fn episode_count(&self) -> usize {
         self.episode_count
     }
-
-
 }
 
 impl ExtendedInfo {

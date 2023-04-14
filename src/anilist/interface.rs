@@ -1,5 +1,5 @@
 use crate::anilist::client::AniListClient;
-use crate::anilist::queries::{ANIME_DETAIL_QUERY_STRING, ANIME_LIST_PAGE, ANIME_LIST_PAGE_FILTERED_STRING, EDIT_WATCHCOUNT_STRING, SEARCH_STRING, VIEWER_QUERY_STRING};
+use crate::anilist::queries::*;
 use crate::anime_entry::ExtendedInfo;
 use crate::list_entry::{ListEntry, ListStatus};
 use crate::search_entry::AnimeSearchEntry;
@@ -184,14 +184,10 @@ impl AniListInterface {
             Err(_) => panic!("Error while fetching authcode"),
         };
         let res: serde_json::Value = serde_json::from_str(&result)?;
-        let content = res["data"]["Media"].as_array().unwrap();
+        let res_media = &res["data"]["Media"];
 
         Ok(0)
     }
-
-
-
-
 
     pub fn get_main_list(&self) -> Vec<ListEntry> {self.main_list.clone()}
 

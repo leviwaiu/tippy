@@ -25,7 +25,7 @@ pub struct AnimeSearch {
     entering: bool,
     search_ready: bool,
 
-    selected_anime: Option<AnimeSearchEntry>,
+    selected_anime: Option<usize>,
 
     toolbar_text: String,
 }
@@ -111,8 +111,7 @@ impl Displayable for AnimeSearch {
             self.search_ready = false;
         }
 
-        if let Some(anime) = &self.selected_anime {
-            let media_id = anime.get_id();
+        if let Some(media_id) = self.selected_anime {
             interface.get_anime_details(media_id).expect("TODO: panic message");
         }
     }
@@ -147,12 +146,22 @@ impl AnimeSearch {
                 self.toolbar_text = String::from("Search Function");
             }
             ,
-            Some(1) => {}, // Advance Search,
+            Some(1) => {}, // Advanced Search,
             Some(2) => {}, //
             Some(3) => self.search_ready = !self.search_ready, //Search,
             Some(4) => self.reset(), //Reset,
-            _ => {} // General List Selection
+            None => self.enter_on_result(), // General List Selection
+            _ => {}
         }
+    }
+
+    fn enter_on_result(&mut self) {
+        if let Some(x) = &self.result_display {
+            let result = &x[self.result_state.selected().unwrap()];
+            self.selected_anime = Some(result.get_id());
+        }
+
+
     }
 
     fn reset(&mut self) {
